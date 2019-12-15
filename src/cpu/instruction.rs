@@ -14,18 +14,18 @@ pub enum Instruction {
     LessThan,
 }
 
-impl From<&[u64]> for Instruction {
-    fn from(input: &[u64]) -> Self {
+impl From<&[usize]> for Instruction {
+    fn from(input: &[usize]) -> Self {
         use Instruction::*;
 
         let opcode = input[0];
 
         match opcode {
             0 => Halt,
-            1 => Load(input[1] as usize, input[2] as usize),
-            2 => Store(input[1] as usize, input[2] as usize),
-            3 => JumpIfTrue(input[1] as usize),
-            4 => JumpIfFalse(input[1] as usize),
+            1 => Load(input[1], input[2]),
+            2 => Store(input[1], input[2]),
+            3 => JumpIfTrue(input[1]),
+            4 => JumpIfFalse(input[1]),
             5 => Add,
             6 => Sub,
             7 => Mul,

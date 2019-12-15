@@ -14,8 +14,8 @@ pub enum State {
 pub struct Cpu {
     pc: usize,
     state: State,
-    pub registers: [u64; 16],
-    pub memory: Vec<u64>,
+    pub registers: [usize; 16],
+    pub memory: Vec<usize>,
 }
 
 impl Cpu {
@@ -29,7 +29,7 @@ impl Cpu {
         }
     }
 
-    pub fn load_program(&mut self, program: &[u64]) {
+    pub fn load_program(&mut self, program: &[usize]) {
         self.set_memory_slice(0, program);
     }
 
@@ -63,14 +63,14 @@ impl Cpu {
         std::io::stdout().write_all(value.as_ref()).expect("Error write to stdout");
     }
 
-    pub fn set_registers(&mut self, values: &[u64]) {
+    pub fn set_registers(&mut self, values: &[usize]) {
         let end = values.len().min(self.registers.len());
         for i in 0..end {
             self.registers[i] = values[i];
         }
     }
 
-    pub fn set_memory_slice(&mut self, start: usize, values: &[u64]) {
+    pub fn set_memory_slice(&mut self, start: usize, values: &[usize]) {
         clone_slice_into_index(values, &mut self.memory, start);
     }
 }
