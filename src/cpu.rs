@@ -14,8 +14,8 @@ enum State {
 struct Cpu {
     pc: usize,
     state: State,
-    pub registers: [i64; 8],
-    pub memory: Vec<i64>,
+    pub registers: [u8; 16],
+    pub memory: Vec<u8>,
 }
 
 impl Cpu {
@@ -29,7 +29,7 @@ impl Cpu {
         }
     }
 
-    pub fn load_program(&mut self, program: &[i64]) {
+    pub fn load_program(&mut self, program: &[u8]) {
         self.set_memory_slice(0, program);
     }
 
@@ -52,14 +52,25 @@ impl Cpu {
         }
     }
 
-    pub fn set_registers(&mut self, values: &[i64]) {
+    pub fn input(&mut self, ) {
+        use std::io::Read;
+        let mut buffer = String::new();
+        std::io::stdin().read_to_string(&mut buffer).expect("Error reading stdin");
+    }
+
+    pub fn output<'a, T: AsRef<[u8]>>(&self, value: T) {
+        use std::io::Write;
+        std::io::stdout().write_all(value.as_ref()).expect("Error write to stdout");
+    }
+
+    pub fn set_registers(&mut self, values: &[u8]) {
         let end = values.len().min(self.registers.len());
         for i in 0..end {
             self.registers[i] = values[i];
         }
     }
 
-    pub fn set_memory_slice(&mut self, start: usize, values: &[i64]) {
+    pub fn set_memory_slice(&mut self, start: usize, values: &[u8]) {
         clone_slice_into_index(values, &mut self.memory, start);
     }
 }
@@ -69,7 +80,7 @@ impl Default for  Cpu {
         Self { 
             pc: 0,
             state: State::Suspended,
-            registers: [0; 8],
+            registers: [0; 16],
             memory: vec![0; 2048],
         }
     }
@@ -133,7 +144,7 @@ mod tests {
         cpu.set_registers(&[1, 2]);
         cpu.evaluate(Add);
 
-        assert_eq!(cpu.registers[2], 3);
+        assert_eq!(cpu.registers[0], 3);
     }
 
     #[test]
@@ -141,10 +152,10 @@ mod tests {
         use Instruction::Sub;
 
         let mut cpu = Cpu::new();
-        cpu.set_registers(&[1, 2]);
+        cpu.set_registers(&[5, 2]);
         cpu.evaluate(Sub);
 
-        assert_eq!(cpu.registers[2], -1);
+        assert_eq!(cpu.registers[0], 3);
     }
 
     #[test]
@@ -155,7 +166,7 @@ mod tests {
         cpu.set_registers(&[3, 5]);
         cpu.evaluate(Mul);
 
-        assert_eq!(cpu.registers[2], 15);
+        assert_eq!(cpu.registers[0], 15);
     }
 
     #[test]
@@ -166,7 +177,7 @@ mod tests {
         cpu.set_registers(&[8, 2]);
         cpu.evaluate(Div);
 
-        assert_eq!(cpu.registers[2], 4);
+        assert_eq!(cpu.registers[0], 4);
     }
 
     #[test]
@@ -177,6 +188,6 @@ mod tests {
         cpu.set_registers(&[7, 3]);
         cpu.evaluate(Mod);
 
-        assert_eq!(cpu.registers[2], 1);
+        assert_eq!(cpu.registers[0], 1);
     }
 }
