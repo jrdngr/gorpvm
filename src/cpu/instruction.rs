@@ -14,8 +14,8 @@ pub enum Instruction {
     LessThan,
 }
 
-impl From<&[u8]> for Instruction {
-    fn from(input: &[u8]) -> Self {
+impl From<&[u64]> for Instruction {
+    fn from(input: &[u64]) -> Self {
         use Instruction::*;
 
         let opcode = input[0];
