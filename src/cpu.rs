@@ -1,15 +1,37 @@
 pub mod instruction;
 
+use crate::utils::clone_slice_into_index;
 use self::instruction::Instruction;
 
+#[derive(Debug, PartialEq)]
+enum State {
+    Suspended,
+    Running,
+    Halting,
+}
+
+#[derive(Debug)]
 struct Cpu {
     pc: usize,
+    state: State,
     pub registers: [i64; 8],
     pub memory: Vec<i64>,
 }
 
 impl Cpu {
     pub fn new() -> Self { Default::default() }
+
+    pub fn run(&mut self) {
+        self.state = State::Running;
+        while self.state == State::Running {
+            let next_instruction = Instruction::from(&self.memory[self.pc..self.pc+3]);
+            self.evaluate(next_instruction);
+        }
+    }
+
+    pub fn load_program(&mut self, program: &[i64]) {
+        self.set_memory_slice(0, program);
+    }
 
     pub fn evaluate(&mut self, instruction: Instruction) {
         use Instruction::*;
@@ -22,6 +44,7 @@ impl Cpu {
             Mul => self.registers[2] = self.registers[0] * self.registers[1],
             Div => self.registers[2] = self.registers[0] / self.registers[1],
             Mod => self.registers[2] = self.registers[0] % self.registers[1],
+            Halt => self.state = State::Halting,
         }
     }
 
@@ -33,9 +56,7 @@ impl Cpu {
     }
 
     pub fn set_memory_slice(&mut self, start: usize, values: &[i64]) {
-        for i in 0..values.len() {
-            self.memory[start + i] = values[i];
-        }
+        clone_slice_into_index(values, &mut self.memory, start);
     }
 }
 
@@ -43,8 +64,9 @@ impl Default for  Cpu {
     fn default() -> Self {
         Self { 
             pc: 0,
+            state: State::Suspended,
             registers: [0; 8],
-            memory: vec![0; 2014],
+            memory: vec![0; 2048],
         }
     }
 }
