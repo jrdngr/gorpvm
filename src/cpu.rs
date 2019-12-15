@@ -4,14 +4,14 @@ use crate::utils::clone_slice_into_index;
 use self::instruction::Instruction;
 
 #[derive(Debug, PartialEq)]
-enum State {
+pub enum State {
     Suspended,
     Running,
     Halting,
 }
 
 #[derive(Debug)]
-struct Cpu {
+pub struct Cpu {
     pc: usize,
     state: State,
     pub registers: [u8; 16],
