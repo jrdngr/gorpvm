@@ -49,6 +49,14 @@ impl Default for  Cpu {
     }
 }
 
+
+
+/* 
+ *
+ *  Tests
+ *
+ */
+
 #[cfg(test)]
 mod tests {
     use super::*;
