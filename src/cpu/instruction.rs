@@ -1,12 +1,16 @@
 pub enum Instruction {
+    Halt,
     Load(usize, usize),
     Store(usize, usize),
+    JumpIfTrue(usize),
+    JumpIfFalse(usize),
     Add,
     Sub,
     Mul,
     Div,
     Mod,
-    Halt,
+    Equals,
+    LessThan,
 }
 
 impl From<&[i64]> for Instruction {
@@ -19,11 +23,15 @@ impl From<&[i64]> for Instruction {
             0 => Halt,
             1 => Load(input[1] as usize, input[2] as usize),
             2 => Store(input[1] as usize, input[2] as usize),
-            3 => Add,
-            4 => Sub,
-            5 => Mul,
-            6 => Div,
-            7 => Mod,
+            3 => JumpIfTrue(input[1] as usize),
+            4 => JumpIfFalse(input[1] as usize),
+            5 => Add,
+            6 => Sub,
+            7 => Mul,
+            9 => Div,
+            10 => Mod,
+            11 => Equals,
+            12 => LessThan,
             _ => panic!("Invalid opcode: {}", opcode),
         }
     }

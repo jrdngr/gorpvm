@@ -37,14 +37,18 @@ impl Cpu {
         use Instruction::*;
 
         match instruction {
+            Halt => self.state = State::Halting,
             Load(mem, reg) => self.registers[reg] = self.memory[mem],
             Store(reg, mem) => self.memory[mem] = self.registers[reg],
-            Add => self.registers[2] = self.registers[0] + self.registers[1],
-            Sub => self.registers[2] = self.registers[0] - self.registers[1],
-            Mul => self.registers[2] = self.registers[0] * self.registers[1],
-            Div => self.registers[2] = self.registers[0] / self.registers[1],
-            Mod => self.registers[2] = self.registers[0] % self.registers[1],
-            Halt => self.state = State::Halting,
+            JumpIfTrue(pos) => if self.registers[0] > 0 { self.pc = pos },
+            JumpIfFalse(pos) => if self.registers[0] == 0 { self.pc = pos },
+            Add => self.registers[0] = self.registers[0] + self.registers[1],
+            Sub => self.registers[0] = self.registers[0] - self.registers[1],
+            Mul => self.registers[0] = self.registers[0] * self.registers[1],
+            Div => self.registers[0] = self.registers[0] / self.registers[1],
+            Mod => self.registers[0] = self.registers[0] % self.registers[1],
+            Equals => self.registers[0] = if self.registers[0] == self.registers[1] { 1 } else { 0 },
+            LessThan => self.registers[0] = if self.registers[0] < self.registers[1]{ 1 } else { 0 },
         }
     }
 
