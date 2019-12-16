@@ -31,7 +31,24 @@ impl Cpu {
         self.ram_ptr = program.len();
     }
 
-    pub fn evaluate(&mut self, _instruction: Instruction) {
+    pub fn evaluate(&mut self, instruction: Instruction) {
+        let Instruction { opcode, src1, src2, dest } = instruction;
+        match opcode {
+            0x00 => self.state = State::Halting,
+            0x01 => {},
+            0x02 => {},
+            0x10 => {},
+            0x11 => {},
+            0x20 => {},
+            0x21 => {},
+            0x22 => {},
+            0x23 => {},
+            0x24 => {},
+            0x30 => {},
+            0x31 => {},
+            0x32 => {},
+            _ => panic!("Unknown instruction: {}", opcode),
+        }
     }
 
     pub fn input(&mut self, ) {
