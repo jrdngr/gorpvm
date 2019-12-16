@@ -31,7 +31,7 @@ impl Cpu {
         self.ram_ptr = program.len();
     }
 
-    pub fn evaluate(&mut self, instruction: Instruction) {
+    pub fn process_instruction(&mut self, instruction: Instruction) {
         let Instruction { opcode, src1, src2, dest } = instruction;
         match opcode {
             0x00 => self.state = State::Halting,
@@ -49,6 +49,28 @@ impl Cpu {
             0x32 => {},
             _ => panic!("Unknown instruction: {}", opcode),
         }
+    }
+
+    fn evaluate(&self, parameter: u8) -> usize {
+        let mode = (parameter & 0xF0) >> 4;
+        let value = parameter & 0x0F;
+
+        if mode >= 0b1000 {
+            // Immediate mode with extra bits
+            (parameter & 0b0111_1111) as usize
+        } else if mode >= 0b0100 {
+            // Offset mode
+            let offset = (parameter & 0b0011_1111) as usize;
+            self.memory[self.pc + offset]
+        } else if mode == 1 {
+            // Register mode
+            self.registers[value as usize]
+        }  else if mode == 0 {
+            // Immediate mode
+            (value & 0b0000_1111) as usize
+        } else {
+            panic!("Invalid mode: {}", mode);
+        } 
     }
 
     pub fn input(&mut self, ) {
