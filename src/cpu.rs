@@ -14,9 +14,9 @@ pub enum State {
 pub struct Cpu {
     state: State,
     pc: usize,
-    ram_ptr: usize,
-    pub registers: [usize; 16],
-    pub memory: Vec<usize>,
+    registers: [usize; 16],
+    rom: Vec<Instruction>,
+    memory: Vec<usize>,
 }
 
 impl Cpu {
@@ -26,37 +26,50 @@ impl Cpu {
         self.state = State::Running;
     }
 
-    pub fn load_program(&mut self, program: &[usize]) {
-        self.set_memory_slice(0, program);
-        self.ram_ptr = program.len();
-    }
-
-    pub fn process_instruction(&mut self, instruction: Instruction) {
-        let Instruction { opcode, src1, src2, dest } = instruction;
-        match opcode {
-            0x00 => self.state = State::Halting,
-            0x01 => {},
-            0x02 => {},
-            0x10 => {},
-            0x11 => {},
-            0x20 => {},
-            0x21 => {},
-            0x22 => {},
-            0x23 => {},
-            0x24 => {},
-            0x30 => {},
-            0x31 => {},
-            0x32 => {},
-            _ => panic!("Unknown instruction: {}", opcode),
+    pub fn load_program(&mut self, program: &[u8]) {
+        self.rom = Vec::with_capacity((program.len() / 4) + 1);
+        let loop_end = program.len() - (program.len() % 4);
+        let mut index = 0;
+        while index < loop_end {
+            let instruction = (program[index + 0] << 24) as u32
+                            & (program[index + 1] << 16) as u32
+                            & (program[index + 2] << 8) as u32
+                            & (program[index + 3]) as u32;
+            self.rom.push(Instruction::from(instruction));
+            index += 4;
         }
     }
 
-    fn evaluate(&self, parameter: u8) -> usize {
+    pub fn process_instruction(&mut self, instruction: Instruction) {
+        let (src1, src2, dest) = self.evaluate_all_parameters(instruction);
+        
+        match instruction.opcode {
+            0x00 => self.state = State::Halting,
+            0x01 => self.registers[dest] = self.memory[src1],
+            0x02 => self.memory[dest] = self.registers[src1],
+            0x03 => self.registers[dest] = src1,
+            0x10 => {},
+            0x11 => {},
+            0x20 => self.registers[dest] = self.registers[src1] + self.registers[src2],
+            0x21 => self.registers[dest] = self.registers[src1] - self.registers[src2],
+            0x22 => self.registers[dest] = self.registers[src1] * self.registers[src2],
+            0x23 => self.registers[dest] = self.registers[src1] / self.registers[src2],
+            0x24 => self.registers[dest] = self.registers[src1] % self.registers[src2],
+            0x30 => self.registers[dest] = if self.registers[src1] == self.registers[src2] { 1 } else { 0 },
+            0x31 => self.registers[dest] = if self.registers[src1] < self.registers[src2] { 1 } else { 0 },
+            0x32 => self.registers[dest] = if self.registers[src1] <= self.registers[src2] { 1 } else { 0 },
+            0x33 => self.registers[dest] = if self.registers[src1] > self.registers[src2] { 1 } else { 0 },
+            0x34 => self.registers[dest] = if self.registers[src1] >= self.registers[src2] { 1 } else { 0 },
+            _ => panic!("Unknown instruction: {}", instruction.opcode),
+        }
+    }
+
+    fn evaluate_parameter(&self, parameter: u8) -> usize {
         let mode = (parameter & 0xF0) >> 4;
-        let value = parameter & 0x0F;
+        if mode == 0 { return 0 }
 
         if mode >= 0b1000 {
-            // Immediate mode with extra bits
+            // Immediate mode
             (parameter & 0b0111_1111) as usize
         } else if mode >= 0b0100 {
             // Offset mode
@@ -64,36 +77,27 @@ impl Cpu {
             self.memory[self.pc + offset]
         } else if mode == 1 {
             // Register mode
-            self.registers[value as usize]
-        }  else if mode == 0 {
-            // Immediate mode
-            (value & 0b0000_1111) as usize
+            self.registers[(parameter & 0x0F) as usize]
         } else {
             panic!("Invalid mode: {}", mode);
         } 
     }
 
-    pub fn input(&mut self, ) {
-        use std::io::Read;
-        let mut buffer = String::new();
-        std::io::stdin().read_to_string(&mut buffer).expect("Error reading stdin");
+    fn evaluate_all_parameters(&self, instruction: Instruction) -> (usize, usize, usize) {
+        let (_, src1, src2, dest) = instruction.into_parts();
+        (self.evaluate_parameter(src1), self.evaluate_parameter(src2), self.evaluate_parameter(dest))
     }
 
-    pub fn output<'a, T: AsRef<[u8]>>(&self, value: T) {
-        use std::io::Write;
-        std::io::stdout().write_all(value.as_ref()).expect("Error write to stdout");
-    }
+    // pub fn input(&mut self) {
+    //     use std::io::Read;
+    //     let mut buffer = String::new();
+    //     std::io::stdin().read_to_string(&mut buffer).expect("Error reading stdin");
+    // }
 
-    pub fn set_registers(&mut self, values: &[usize]) {
-        let end = values.len().min(self.registers.len());
-        for i in 0..end {
-            self.registers[i] = values[i];
-        }
-    }
-
-    pub fn set_memory_slice(&mut self, start: usize, values: &[usize]) {
-        clone_slice_into_index(values, &mut self.memory, start);
-    }
+    // pub fn output<'a, T: AsRef<[u8]>>(&self, value: T) {
+    //     use std::io::Write;
+    //     std::io::stdout().write_all(value.as_ref()).expect("Error write to stdout");
+    // }
 }
 
 impl Default for  Cpu {
@@ -101,9 +105,9 @@ impl Default for  Cpu {
         Self { 
             state: State::Suspended,
             pc: 0,
-            ram_ptr: 0,
             registers: [0; 16],
-            memory: vec![0; 2048],
+            memory: vec![0; 65536],
+            rom: Vec::new(),
         }
     }
 }

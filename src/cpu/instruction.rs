@@ -29,7 +29,7 @@ impl Instruction {
 [  00000000  |  0000_0000  |  0000_0000  |  0000_0000  ]
 [  opcode    |  mode_src1  |  mode_src2  |  mode_dest  ]  
 
-0000 - immediate
+0000 - unused
 0001 - register
 001x - ?
 01xx - offset
@@ -38,8 +38,9 @@ impl Instruction {
 
 00 - halt
 
-01 - load mem reg
+01 - load reg mem
 02 - stor reg mem
+03 - set reg val
 
 10 - jmpt test reg
 11 - jmpf test reg
@@ -52,7 +53,9 @@ impl Instruction {
 
 30 - eq rx ry rd
 31 - lt rx ry rd
-32 - gt rx ry rd
+32 - le rx ry rd
+33 - gt rx ry rd
+34 - ge rx ry rd
 
 */
 
