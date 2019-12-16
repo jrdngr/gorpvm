@@ -1,47 +1,67 @@
-#[derive(Debug)]
-pub enum Instruction {
-    Halt,
-    Load(usize, usize),
-    Store(usize, usize),
-    JumpIfTrue(usize),
-    JumpIfFalse(usize),
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Mod,
-    Equals,
-    LessThan,
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Instruction {
+    pub opcode: u8,
+    pub src1: u8,
+    pub src2: u8,
+    pub dest: u8,
 }
 
-impl From<&[usize]> for Instruction {
-    fn from(input: &[usize]) -> Self {
-        use Instruction::*;
-
-        let opcode = input[0];
-
-        match opcode {
-            0 => Halt,
-            1 => Load(input[1], input[2]),
-            2 => Store(input[1], input[2]),
-            3 => JumpIfTrue(input[1]),
-            4 => JumpIfFalse(input[1]),
-            5 => Add,
-            6 => Sub,
-            7 => Mul,
-            9 => Div,
-            10 => Mod,
-            11 => Equals,
-            12 => LessThan,
-            _ => panic!("Invalid opcode: {}", opcode),
+impl From<u32> for Instruction {
+    fn from(value: u32) -> Self {
+        Self {
+            opcode: ((value & 0xFF000000) >> 24) as u8,
+            src1:   ((value & 0x00FF0000) >> 16) as u8,
+            src2:   ((value & 0x0000FF00) >> 8) as u8,
+            dest:    (value & 0x000000FF) as u8,
         }
     }
 }
 
+impl Instruction {
+    pub fn into_parts(self) -> (u8, u8, u8, u8) {
+        (self.opcode, self.src1, self.src2, self.dest)
+    }
+}
+
+
+/*
+
+[  00000000  |  0000_0000  |  0000_0000  |  0000_0000  ]
+[  opcode    |  mode_src1  |  mode_src2  |  mode_dest  ]  
+
+0000 - immediate
+0001 - register
+001x - ?
+01xx - offset
+1xxx - immediate
+
+
+00 - halt
+
+01 - load mem reg
+02 - stor reg mem
+
+10 - jmpt test reg
+11 - jmpf test reg
+
+20 - add rx ry rd
+21 - sub rx ry rd
+22 - mul rx ry rd
+23 - div rx ry rd
+24 - mod rx ry rd
+
+30 - eq rx ry rd
+31 - lt rx ry rd
+32 - gt rx ry rd
+
+*/
+
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn from_u32() {
+        assert_eq!(Instruction::from(0xAA112233).into_parts(), (0xAA, 0x11, 0x22, 0x33));
     }
 }

@@ -23,33 +23,13 @@ impl Cpu {
 
     pub fn run(&mut self) {
         self.state = State::Running;
-        while self.state == State::Running {
-            let next_instruction = Instruction::from(&self.memory[self.pc..self.pc+3]);
-            self.evaluate(next_instruction);
-        }
     }
 
     pub fn load_program(&mut self, program: &[usize]) {
         self.set_memory_slice(0, program);
     }
 
-    pub fn evaluate(&mut self, instruction: Instruction) {
-        use Instruction::*;
-
-        match instruction {
-            Halt => self.state = State::Halting,
-            Load(mem, reg) => self.registers[reg] = self.memory[mem],
-            Store(reg, mem) => self.memory[mem] = self.registers[reg],
-            JumpIfTrue(pos) => if self.registers[0] > 0 { self.pc = pos },
-            JumpIfFalse(pos) => if self.registers[0] == 0 { self.pc = pos },
-            Add => self.registers[0] = self.registers[0] + self.registers[1],
-            Sub => self.registers[0] = self.registers[0] - self.registers[1],
-            Mul => self.registers[0] = self.registers[0] * self.registers[1],
-            Div => self.registers[0] = self.registers[0] / self.registers[1],
-            Mod => self.registers[0] = self.registers[0] % self.registers[1],
-            Equals => self.registers[0] = if self.registers[0] == self.registers[1] { 1 } else { 0 },
-            LessThan => self.registers[0] = if self.registers[0] < self.registers[1]{ 1 } else { 0 },
-        }
+    pub fn evaluate(&mut self, _instruction: Instruction) {
     }
 
     pub fn input(&mut self, ) {
@@ -96,98 +76,98 @@ impl Default for  Cpu {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+//     use super::*;
     
-    #[test]
-    fn load() {
-        use Instruction::Load;
+//     #[test]
+//     fn load() {
+//         use Instruction::Load;
 
-        let mut cpu = Cpu::new();
-        cpu.set_memory_slice(0, &[1, 2, 3]);
+//         let mut cpu = Cpu::new();
+//         cpu.set_memory_slice(0, &[1, 2, 3]);
 
-        cpu.evaluate(Load(0, 0));
-        cpu.evaluate(Load(1, 1));
-        cpu.evaluate(Load(2, 2));
+//         cpu.evaluate(Load(0, 0));
+//         cpu.evaluate(Load(1, 1));
+//         cpu.evaluate(Load(2, 2));
 
-        assert_eq!(cpu.registers[0], 1);
-        assert_eq!(cpu.registers[1], 2);
-        assert_eq!(cpu.registers[2], 3);
+//         assert_eq!(cpu.registers[0], 1);
+//         assert_eq!(cpu.registers[1], 2);
+//         assert_eq!(cpu.registers[2], 3);
 
-        cpu.evaluate(Load(2, 0));
-        assert_eq!(cpu.registers[0], 3);
-    }
+//         cpu.evaluate(Load(2, 0));
+//         assert_eq!(cpu.registers[0], 3);
+//     }
 
-    #[test]
-    fn store() {
-        use Instruction::Store;
+//     #[test]
+//     fn store() {
+//         use Instruction::Store;
 
-        let mut cpu = Cpu::new();
-        cpu.set_registers(&[1, 2, 3]);
+//         let mut cpu = Cpu::new();
+//         cpu.set_registers(&[1, 2, 3]);
 
-        cpu.evaluate(Store(0, 0));
-        cpu.evaluate(Store(1, 1));
-        cpu.evaluate(Store(2, 2));
+//         cpu.evaluate(Store(0, 0));
+//         cpu.evaluate(Store(1, 1));
+//         cpu.evaluate(Store(2, 2));
 
-        assert_eq!(cpu.memory[0], 1);
-        assert_eq!(cpu.memory[1], 2);
-        assert_eq!(cpu.memory[2], 3);
+//         assert_eq!(cpu.memory[0], 1);
+//         assert_eq!(cpu.memory[1], 2);
+//         assert_eq!(cpu.memory[2], 3);
 
-        cpu.evaluate(Store(2, 0));
-        assert_eq!(cpu.memory[0], 3);
-    }
+//         cpu.evaluate(Store(2, 0));
+//         assert_eq!(cpu.memory[0], 3);
+//     }
 
-    #[test]
-    fn add() {
-        use Instruction::Add;
+//     #[test]
+//     fn add() {
+//         use Instruction::Add;
 
-        let mut cpu = Cpu::new();
-        cpu.set_registers(&[1, 2]);
-        cpu.evaluate(Add);
+//         let mut cpu = Cpu::new();
+//         cpu.set_registers(&[1, 2]);
+//         cpu.evaluate(Add);
 
-        assert_eq!(cpu.registers[0], 3);
-    }
+//         assert_eq!(cpu.registers[0], 3);
+//     }
 
-    #[test]
-    fn subtract() {
-        use Instruction::Sub;
+//     #[test]
+//     fn subtract() {
+//         use Instruction::Sub;
 
-        let mut cpu = Cpu::new();
-        cpu.set_registers(&[5, 2]);
-        cpu.evaluate(Sub);
+//         let mut cpu = Cpu::new();
+//         cpu.set_registers(&[5, 2]);
+//         cpu.evaluate(Sub);
 
-        assert_eq!(cpu.registers[0], 3);
-    }
+//         assert_eq!(cpu.registers[0], 3);
+//     }
 
-    #[test]
-    fn multiply() {
-        use Instruction::Mul;
+//     #[test]
+//     fn multiply() {
+//         use Instruction::Mul;
 
-        let mut cpu = Cpu::new();
-        cpu.set_registers(&[3, 5]);
-        cpu.evaluate(Mul);
+//         let mut cpu = Cpu::new();
+//         cpu.set_registers(&[3, 5]);
+//         cpu.evaluate(Mul);
 
-        assert_eq!(cpu.registers[0], 15);
-    }
+//         assert_eq!(cpu.registers[0], 15);
+//     }
 
-    #[test]
-    fn divide() {
-        use Instruction::Div;
+//     #[test]
+//     fn divide() {
+//         use Instruction::Div;
 
-        let mut cpu = Cpu::new();
-        cpu.set_registers(&[8, 2]);
-        cpu.evaluate(Div);
+//         let mut cpu = Cpu::new();
+//         cpu.set_registers(&[8, 2]);
+//         cpu.evaluate(Div);
 
-        assert_eq!(cpu.registers[0], 4);
-    }
+//         assert_eq!(cpu.registers[0], 4);
+//     }
 
-    #[test]
-    fn modulo() {
-        use Instruction::Mod;
+//     #[test]
+//     fn modulo() {
+//         use Instruction::Mod;
 
-        let mut cpu = Cpu::new();
-        cpu.set_registers(&[7, 3]);
-        cpu.evaluate(Mod);
+//         let mut cpu = Cpu::new();
+//         cpu.set_registers(&[7, 3]);
+//         cpu.evaluate(Mod);
 
-        assert_eq!(cpu.registers[0], 1);
-    }
+//         assert_eq!(cpu.registers[0], 1);
+//     }
 }
