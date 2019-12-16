@@ -12,8 +12,9 @@ pub enum State {
 
 #[derive(Debug)]
 pub struct Cpu {
-    pc: usize,
     state: State,
+    pc: usize,
+    ram_ptr: usize,
     pub registers: [usize; 16],
     pub memory: Vec<usize>,
 }
@@ -27,6 +28,7 @@ impl Cpu {
 
     pub fn load_program(&mut self, program: &[usize]) {
         self.set_memory_slice(0, program);
+        self.ram_ptr = program.len();
     }
 
     pub fn evaluate(&mut self, _instruction: Instruction) {
@@ -58,8 +60,9 @@ impl Cpu {
 impl Default for  Cpu {
     fn default() -> Self {
         Self { 
-            pc: 0,
             state: State::Suspended,
+            pc: 0,
+            ram_ptr: 0,
             registers: [0; 16],
             memory: vec![0; 2048],
         }
