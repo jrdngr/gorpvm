@@ -42,8 +42,8 @@ impl Instruction {
 02 - stor reg mem
 03 - set reg val
 
-10 - jmpt test reg
-11 - jmpf test reg
+10 - jmpt test sign pos
+11 - jmpf test sign pos
 
 20 - add rx ry rd
 21 - sub rx ry rd

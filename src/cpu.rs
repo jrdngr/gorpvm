@@ -1,6 +1,5 @@
 pub mod instruction;
 
-use crate::utils::clone_slice_into_index;
 use self::instruction::Instruction;
 
 #[derive(Debug, PartialEq)]
@@ -48,8 +47,20 @@ impl Cpu {
             0x01 => self.registers[dest] = self.memory[src1],
             0x02 => self.memory[dest] = self.registers[src1],
             0x03 => self.registers[dest] = src1,
-            0x10 => {},
-            0x11 => {},
+            0x10 => if self.registers[src1] > 0 {
+                if src2 == 0 {
+                    self.pc -= dest
+                } else {
+                    self.pc += dest
+                }
+            },
+            0x11 => if self.registers[src1] == 0 {
+                if src2 == 0 {
+                    self.pc -= dest
+                } else {
+                    self.pc += dest
+                }
+            },
             0x20 => self.registers[dest] = self.registers[src1] + self.registers[src2],
             0x21 => self.registers[dest] = self.registers[src1] - self.registers[src2],
             0x22 => self.registers[dest] = self.registers[src1] * self.registers[src2],
@@ -74,7 +85,7 @@ impl Cpu {
         } else if mode >= 0b0100 {
             // Offset mode
             let offset = (parameter & 0b0011_1111) as usize;
-            self.memory[self.pc + offset]
+            self.pc + offset
         } else if mode == 1 {
             // Register mode
             self.registers[(parameter & 0x0F) as usize]
