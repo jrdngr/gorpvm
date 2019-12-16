@@ -23,30 +23,46 @@ impl Cpu {
 
     pub fn run(&mut self) {
         self.state = State::Running;
+        while self.pc < self.rom.len() && self.state == State::Running {
+            self.pc += 1;
+            let next_instruction = self.rom[self.pc];
+            self.process_instruction(next_instruction);
+        }
     }
 
     pub fn load_program(&mut self, program: &[u8]) {
         self.rom = Vec::with_capacity((program.len() / 4) + 1);
-        let loop_end = program.len() - (program.len() % 4);
+        let loop_end = program.len() - program.len() % 4;
+        
         let mut index = 0;
         while index < loop_end {
-            let instruction = (program[index + 0] << 24) as u32
-                            & (program[index + 1] << 16) as u32
-                            & (program[index + 2] << 8) as u32
-                            & (program[index + 3]) as u32;
+            let instruction = (program[index + 0] as u32) << 24
+                            | (program[index + 1] as u32) << 16
+                            | (program[index + 2] as u32) << 8
+                            |  program[index + 3] as u32;
             self.rom.push(Instruction::from(instruction));
             index += 4;
         }
     }
 
-    pub fn process_instruction(&mut self, instruction: Instruction) {
+    pub fn registers(&self) -> &[usize] {
+        &self.registers
+    }
+
+    pub fn memory(&self) -> &[usize] {
+        &self.memory
+    }
+
+    fn process_instruction(&mut self, instruction: Instruction) {
         let (src1, src2, dest) = self.evaluate_all_parameters(instruction);
         
+        dbg!(&instruction);
         match instruction.opcode {
             0x00 => self.state = State::Halting,
             0x01 => self.registers[dest] = self.memory[src1],
             0x02 => self.memory[dest] = self.registers[src1],
             0x03 => self.registers[dest] = src1,
+            0x04 => self.registers[dest] = self.registers[src1],
             0x10 => if self.registers[src1] > 0 {
                 if src2 == 0 {
                     self.pc -= dest
@@ -77,8 +93,6 @@ impl Cpu {
 
     fn evaluate_parameter(&self, parameter: u8) -> usize {
         let mode = (parameter & 0xF0) >> 4;
-        if mode == 0 { return 0 }
-
         if mode >= 0b1000 {
             // Immediate mode
             (parameter & 0b0111_1111) as usize
@@ -86,7 +100,7 @@ impl Cpu {
             // Offset mode
             let offset = (parameter & 0b0011_1111) as usize;
             self.pc + offset
-        } else if mode == 1 {
+        } else if mode == 0 {
             // Register mode
             self.registers[(parameter & 0x0F) as usize]
         } else {

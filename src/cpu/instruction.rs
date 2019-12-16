@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub struct Instruction {
     pub opcode: u8,
     pub src1: u8,
@@ -21,16 +21,63 @@ impl Instruction {
     pub fn into_parts(self) -> (u8, u8, u8, u8) {
         (self.opcode, self.src1, self.src2, self.dest)
     }
+
+    pub fn as_assembly(&self) -> String {
+        let instruction = match self.opcode {
+            0x00 => "halt",
+            0x01 => "load",
+            0x02 => "stor",
+            0x03 => "setr",
+            0x04 => "copy",
+            0x10 => "jmpt",
+            0x11 => "jmpf",
+            0x20 => "addr",
+            0x21 => "subr",
+            0x22 => "mulr",
+            0x23 => "divr",
+            0x24 => "modr",
+            0x30 => "eq",
+            0x31 => "lt",
+            0x32 => "le",
+            0x33 => "gt",
+            0x34 => "ge",
+            _    => "invalid",
+        };
+
+        let src1 = Self::parameter_as_str(self.src1);
+        let src2 = Self::parameter_as_str(self.src2);
+        let dest = Self::parameter_as_str(self.dest);
+
+        format!("{} {} {} {}", instruction, src1, src2, dest)
+    }
+
+    fn parameter_as_str(parameter: u8) -> String {
+        let mode = (parameter & 0xF0) >> 4;
+        if mode >= 0b1000 {
+            format!("{}i", parameter & 0b0111_1111)
+        } else if mode >= 0b0100 {
+            format!("{}o", parameter & 0b0011_1111)
+        } else if mode == 0 {
+            format!("{}r", parameter & 0x0F)
+        } else {
+            String::from("xxx")
+        } 
+    }
 }
 
+impl std::fmt::Debug for Instruction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_assembly())
+    }
+}
 
 /*
 
 [  00000000  |  0000_0000  |  0000_0000  |  0000_0000  ]
 [  opcode    |  mode_src1  |  mode_src2  |  mode_dest  ]  
 
-0000 - unused
-0001 - register
+0000 - register
+0001 - ?
 001x - ?
 01xx - offset
 1xxx - immediate
@@ -41,6 +88,7 @@ impl Instruction {
 01 - load reg mem
 02 - stor reg mem
 03 - set reg val
+04 - copy reg1 reg2
 
 10 - jmpt test sign pos
 11 - jmpf test sign pos
