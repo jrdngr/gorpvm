@@ -15,7 +15,7 @@ I'm making myself a little pretend computer!
 ## Notes
 
 ### Operator Abuse
-```
+```rust
 // Sorta makes sense
 cpu |= [0x01, 0, 0, 0]
 cpu &= [0x01, 0, 0, 0]
