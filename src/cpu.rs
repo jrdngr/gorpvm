@@ -287,6 +287,51 @@ mod tests {
     #[test]
     fn jump_if_true() {
         let mut cpu = Cpu::new();
+        cpu.registers[0] = 1;
+        cpu.registers[1] = 0;
+
+        cpu &= [0x10, 0, 1, 5];
+        assert_eq!(cpu.pc, 5);
+
+        cpu &= [0x10, 1, 1, 5];
+        assert_eq!(cpu.pc, 5);
+
+        cpu &= [0x10, 0, 0, 3];
+        assert_eq!(cpu.pc, 2);
+    }
+
+    #[test]
+    fn jump_if_false() {
+        let mut cpu = Cpu::new();
+        cpu.registers[0] = 0;
+        cpu.registers[1] = 1;
+
+        cpu &= [0x11, 0, 1, 5];
+        assert_eq!(cpu.pc, 5);
+
+        cpu &= [0x11, 1, 1, 5];
+        assert_eq!(cpu.pc, 5);
+
+        cpu &= [0x11, 0, 0, 3];
+        assert_eq!(cpu.pc, 2);
+    }
+
+    #[test]
+    fn is_equal() {
+        let mut cpu = Cpu::new();
+        cpu.registers[0] = 5;
+        cpu.registers[2] = 5;
+
+        // I need to fix immediate mode for these and arithmetic
+        cpu &= [0x30, 0, 5, 1];
+        assert_eq!(cpu.registers[1], 1);
+
+        cpu &= [0x30, 0, 4, 2];
+        assert_eq!(cpu.registers[2], 0);
+    }
+
+    fn r(num: u8) -> u8 {
+        0b0001_0000 | num
     }
 
     // #[test]
@@ -307,8 +352,6 @@ mod tests {
     //     assert_eq!(cpu.registers()[1], 8);
     // }
 
-    // fn r(num: u8) -> u8 {
-    //     0b0001_0000 | num
-    // }
+ 
 
 }
