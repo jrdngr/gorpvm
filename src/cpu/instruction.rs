@@ -57,10 +57,11 @@ impl Instruction {
             0x23 => "div",
             0x24 => "mod",
             0x30 => "eq",
-            0x31 => "lt",
-            0x32 => "le",
-            0x33 => "gt",
-            0x34 => "ge",
+            0x31 => "ne",
+            0x32 => "lt",
+            0x33 => "le",
+            0x34 => "gt",
+            0x35 => "ge",
             _    => "invalid",
         };
 
@@ -115,17 +116,18 @@ impl std::fmt::Display for Instruction {
 10 - jmpt test sign pos
 11 - jmpf test sign pos
 
-20 - add rx ry rd
-21 - sub rx ry rd
-22 - mul rx ry rd
-23 - div rx ry rd
-24 - mod rx ry rd
+20 - add x y rd
+21 - sub x y rd
+22 - mul x y rd
+23 - div x y rd
+24 - mod x y rd
 
-30 - eq rx ry rd
-31 - lt rx ry rd
-32 - le rx ry rd
-33 - gt rx ry rd
-34 - ge rx ry rd
+30 - eq x y rd
+31 - ne x y rd
+32 - lt x y rd
+33 - le x y rd
+34 - gt x y rd
+35 - ge x y rd
 
 */
 

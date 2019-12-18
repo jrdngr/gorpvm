@@ -59,30 +59,31 @@ impl Cpu {
             0x02 => self.memory[dest] = self.registers[src1],
             0x03 => self.registers[dest] = src1,
             0x04 => self.registers[dest] = self.registers[src1],
-            0x10 => if self.registers[src1] > 0 {
+            0x10 => if src1 > 0 {
                 if src2 == 0 {
                     self.pc -= dest
                 } else {
                     self.pc += dest
                 }
             },
-            0x11 => if self.registers[src1] == 0 {
+            0x11 => if src1 == 0 {
                 if src2 == 0 {
                     self.pc -= dest
                 } else {
                     self.pc += dest
                 }
             },
-            0x20 => self.registers[dest] = self.registers[src1] + self.registers[src2],
-            0x21 => self.registers[dest] = self.registers[src1] - self.registers[src2],
-            0x22 => self.registers[dest] = self.registers[src1] * self.registers[src2],
-            0x23 => self.registers[dest] = self.registers[src1] / self.registers[src2],
-            0x24 => self.registers[dest] = self.registers[src1] % self.registers[src2],
-            0x30 => self.registers[dest] = if self.registers[src1] == self.registers[src2] { 1 } else { 0 },
-            0x31 => self.registers[dest] = if self.registers[src1] < self.registers[src2] { 1 } else { 0 },
-            0x32 => self.registers[dest] = if self.registers[src1] <= self.registers[src2] { 1 } else { 0 },
-            0x33 => self.registers[dest] = if self.registers[src1] > self.registers[src2] { 1 } else { 0 },
-            0x34 => self.registers[dest] = if self.registers[src1] >= self.registers[src2] { 1 } else { 0 },
+            0x20 => self.registers[dest] = src1 + src2,
+            0x21 => self.registers[dest] = src1 - src2,
+            0x22 => self.registers[dest] = src1 * src2,
+            0x23 => self.registers[dest] = src1 / src2,
+            0x24 => self.registers[dest] = src1 % src2,
+            0x30 => self.registers[dest] = if src1 == src2 { 1 } else { 0 },
+            0x31 => self.registers[dest] = if src1 != src2 { 1 } else { 0 },
+            0x32 => self.registers[dest] = if src1 < src2 { 1 } else { 0 },
+            0x33 => self.registers[dest] = if src1 <= src2 { 1 } else { 0 },
+            0x34 => self.registers[dest] = if src1 > src2 { 1 } else { 0 },
+            0x35 => self.registers[dest] = if src1 >= src2 { 1 } else { 0 },
             _ => panic!("Unknown instruction: {}", instruction.opcode),
         }
     }
@@ -94,6 +95,9 @@ impl Cpu {
             (parameter & 0b0111_1111) as usize
         } else if mode >= 0b0100 {
             // Offset mode
+            // Not sure how I'm going to use this yet or what it's even for
+            // I read a bit about addressing but I want to implement some stuff
+            // before I read further
             let offset = (parameter & 0b0011_1111) as usize;
             self.pc + offset
         } else if mode >= 0b0001 {
@@ -224,11 +228,14 @@ mod tests {
         cpu &= [0x03, 3, 0, 0];
         cpu &= [0x03, 2, 0, 1];
 
-        cpu &= [0x20, 0, 1, 2];
+        cpu &= [0x20, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 5);
 
-        cpu &= [0x20, 0, 2, 2];
+        cpu &= [0x20, r(0), r(2), 2];
         assert_eq!(cpu.registers[2], 8);
+
+        cpu &= [0x20, r(2), 2, 2];
+        assert_eq!(cpu.registers[2], 10);
     }
 
     #[test]
@@ -237,12 +244,15 @@ mod tests {
         cpu &= [0x03, 3, 0, 0];
         cpu &= [0x03, 2, 0, 1];
 
-        cpu &= [0x21, 0, 1, 2];
+        cpu &= [0x21, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 1);
 
         cpu &= [0x03, 1, 0, 1];
-        cpu &= [0x21, 2, 1, 2];
+        cpu &= [0x21, r(2), r(1), 2];
         assert_eq!(cpu.registers[2], 0);
+
+        cpu &= [0x21, r(0), 1, 3];
+        assert_eq!(cpu.registers[3], 2);
     }
     
     #[test]
@@ -251,11 +261,14 @@ mod tests {
         cpu &= [0x03, 3, 0, 0];
         cpu &= [0x03, 2, 0, 1];
 
-        cpu &= [0x22, 0, 1, 2];
+        cpu &= [0x22, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 6);
 
-        cpu &= [0x22, 0, 2, 2];
+        cpu &= [0x22, r(0), r(2), 2];
         assert_eq!(cpu.registers[2], 18);
+
+        cpu &= [0x22, r(0), 2, 3];
+        assert_eq!(cpu.registers[3], 6);
     }
 
     #[test]
@@ -264,11 +277,14 @@ mod tests {
         cpu &= [0x03, 6, 0, 0];
         cpu &= [0x03, 2, 0, 1];
 
-        cpu &= [0x23, 0, 1, 2];
+        cpu &= [0x23, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 3);
 
-        cpu &= [0x23, 2, 1, 2];
+        cpu &= [0x23, r(2), r(1), 2];
         assert_eq!(cpu.registers[2], 1);
+        
+        cpu &= [0x23, r(0), 3, 3];
+        assert_eq!(cpu.registers[3], 2);
     }
 
     #[test]
@@ -277,11 +293,14 @@ mod tests {
         cpu &= [0x03, 8, 0, 0];
         cpu &= [0x03, 3, 0, 1];
 
-        cpu &= [0x24, 0, 1, 2];
+        cpu &= [0x24, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 2);
 
-        cpu &= [0x24, 1, 2, 2];
+        cpu &= [0x24, r(1), r(2), 2];
         assert_eq!(cpu.registers[2], 1);
+
+        cpu &= [0x24, r(0), 5, 3];
+        assert_eq!(cpu.registers[3], 3);
     }
 
     #[test]
@@ -290,13 +309,13 @@ mod tests {
         cpu.registers[0] = 1;
         cpu.registers[1] = 0;
 
-        cpu &= [0x10, 0, 1, 5];
+        cpu &= [0x10, r(0), 1, 5];
         assert_eq!(cpu.pc, 5);
 
-        cpu &= [0x10, 1, 1, 5];
+        cpu &= [0x10, r(1), 1, 5];
         assert_eq!(cpu.pc, 5);
 
-        cpu &= [0x10, 0, 0, 3];
+        cpu &= [0x10, r(0), 0, 3];
         assert_eq!(cpu.pc, 2);
     }
 
@@ -306,13 +325,13 @@ mod tests {
         cpu.registers[0] = 0;
         cpu.registers[1] = 1;
 
-        cpu &= [0x11, 0, 1, 5];
+        cpu &= [0x11, r(0), 1, 5];
         assert_eq!(cpu.pc, 5);
 
-        cpu &= [0x11, 1, 1, 5];
+        cpu &= [0x11, r(1), 1, 5];
         assert_eq!(cpu.pc, 5);
 
-        cpu &= [0x11, 0, 0, 3];
+        cpu &= [0x11, r(0), 0, 3];
         assert_eq!(cpu.pc, 2);
     }
 
@@ -322,14 +341,88 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        // I need to fix immediate mode for these and arithmetic
-        cpu &= [0x30, 0, 5, 1];
+        cpu &= [0x30, r(0), 5, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x30, 0, 4, 2];
+        cpu &= [0x30, r(0), 4, 2];
         assert_eq!(cpu.registers[2], 0);
     }
 
+    #[test]
+    fn is_not_equal() {
+        let mut cpu = Cpu::new();
+        cpu.registers[0] = 5;
+        cpu.registers[2] = 5;
+
+        cpu &= [0x31, r(0), 4, 1];
+        assert_eq!(cpu.registers[1], 1);
+
+        cpu &= [0x31, r(0), 5, 2];
+        assert_eq!(cpu.registers[2], 0);
+    }
+
+    #[test]
+    fn is_less_than() {
+        let mut cpu = Cpu::new();
+        cpu.registers[0] = 5;
+        cpu.registers[2] = 5;
+
+        cpu &= [0x32, r(0), 6, 1];
+        assert_eq!(cpu.registers[1], 1);
+
+        cpu &= [0x32, r(0), 4, 2];
+        assert_eq!(cpu.registers[2], 0);
+    }
+
+    #[test]
+    fn is_less_than_or_equal() {
+        let mut cpu = Cpu::new();
+        cpu.registers[0] = 5;
+        cpu.registers[2] = 5;
+
+        cpu &= [0x33, r(0), 6, 1];
+        assert_eq!(cpu.registers[1], 1);
+
+        cpu &= [0x33, r(0), 5, 1];
+        assert_eq!(cpu.registers[1], 1);
+
+        cpu &= [0x33, r(0), 4, 2];
+        assert_eq!(cpu.registers[2], 0);
+    }
+
+    #[test]
+    fn is_greater_than() {
+        let mut cpu = Cpu::new();
+        cpu.registers[0] = 5;
+        cpu.registers[2] = 5;
+
+        cpu &= [0x34, r(0), 3, 1];
+        assert_eq!(cpu.registers[1], 1);
+
+        cpu &= [0x34, r(0), 5, 2];
+        assert_eq!(cpu.registers[2], 0);
+
+        cpu &= [0x34, r(0), 7, 2];
+        assert_eq!(cpu.registers[2], 0);
+    }
+
+    #[test]
+    fn is_greater_than_or_equal() {
+        let mut cpu = Cpu::new();
+        cpu.registers[0] = 5;
+        cpu.registers[2] = 5;
+
+        cpu &= [0x35, r(0), 5, 1];
+        assert_eq!(cpu.registers[1], 1);
+
+        cpu &= [0x35, r(0), 4, 1];
+        assert_eq!(cpu.registers[1], 1);
+
+        cpu &= [0x35, r(0), 7, 2];
+        assert_eq!(cpu.registers[2], 0);
+    }
+
+    // Add register mode to a number
     fn r(num: u8) -> u8 {
         0b0001_0000 | num
     }
