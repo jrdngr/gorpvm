@@ -1,4 +1,4 @@
-#[derive(PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Instruction {
     pub opcode: u8,
     pub src1: u8,
@@ -47,15 +47,15 @@ impl Instruction {
             0x00 => "halt",
             0x01 => "load",
             0x02 => "stor",
-            0x03 => "setr",
+            0x03 => "set",
             0x04 => "copy",
             0x10 => "jmpt",
             0x11 => "jmpf",
-            0x20 => "addr",
-            0x21 => "subr",
-            0x22 => "mulr",
-            0x23 => "divr",
-            0x24 => "modr",
+            0x20 => "add",
+            0x21 => "sub",
+            0x22 => "mul",
+            0x23 => "div",
+            0x24 => "mod",
             0x30 => "eq",
             0x31 => "lt",
             0x32 => "le",
@@ -77,15 +77,17 @@ impl Instruction {
             format!("{}i", parameter & 0b0111_1111)
         } else if mode >= 0b0100 {
             format!("{}o", parameter & 0b0011_1111)
-        } else if mode == 0 {
+        } else if mode >= 0b0001 {
             format!("{}r", parameter & 0x0F)
+        } else if mode == 0 {
+            format!("{}i", parameter & 0x0F)
         } else {
             String::from("xxx")
         } 
     }
 }
 
-impl std::fmt::Debug for Instruction {
+impl std::fmt::Display for Instruction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_assembly())
     }
@@ -96,8 +98,8 @@ impl std::fmt::Debug for Instruction {
 [  00000000  |  0000_0000  |  0000_0000  |  0000_0000  ]
 [  opcode    |  mode_src1  |  mode_src2  |  mode_dest  ]  
 
-0000 - register
-0001 - ?
+0000 - immediate
+0001 - register
 001x - ?
 01xx - offset
 1xxx - immediate
@@ -134,5 +136,10 @@ mod tests {
     #[test]
     fn from_u32() {
         assert_eq!(Instruction::from(0xAA112233).into_parts(), (0xAA, 0x11, 0x22, 0x33));
+    }
+
+    #[test]
+    fn from_bytes() {
+        assert_eq!(Instruction::from([0xAA, 0x11, 0x22, 0x33]).into_parts(), (0xAA, 0x11, 0x22, 0x33));
     }
 }
