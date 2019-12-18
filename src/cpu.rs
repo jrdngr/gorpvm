@@ -174,6 +174,11 @@ impl std::ops::BitAndAssign<[u8; 4]> for Cpu {
 #[cfg(test)]
 mod tests {
     use super::*;
+    
+    // Add register mode to a number
+    fn r(num: u8) -> u8 {
+        0b0001_0000 | num
+    }
   
     #[test]
     fn load() {
@@ -422,29 +427,21 @@ mod tests {
         assert_eq!(cpu.registers[2], 0);
     }
 
-    // Add register mode to a number
-    fn r(num: u8) -> u8 {
-        0b0001_0000 | num
+    #[test]
+    fn looping_addition_program() {
+        let mut cpu = Cpu::new();
+        cpu.load_program(&[
+            0x03, 1, 0, 0,
+            0x03, 1, 0, 1,
+            0x20, r(0), r(1), 1,
+            0x32, r(1), 8, 3,
+            0x10, r(3), 0, 3,
+            0,
+        ]);
+        cpu.run();
+
+        assert_eq!(cpu.registers[0], 1);
+        assert_eq!(cpu.registers[1], 8);
+        assert_eq!(cpu.registers[3], 0);
     }
-
-    // #[test]
-    // fn looping_addition_program() {
-    //     let mut cpu = Cpu::new();
-    //     cpu.load_program(&[
-    //         0x03, 1, 0, 0,
-    //         0x03, 1, 0, 1,
-    //         0x20, 0, 1, 1,
-    //         0x31, r(1), 8, 3,
-    //         0x10, r(3), 1, 4,
-    //         0,
-    //     ]);
-    //     cpu.run();
-
-    //     dbg!(&cpu.registers());
-
-    //     assert_eq!(cpu.registers()[1], 8);
-    // }
-
- 
-
 }
