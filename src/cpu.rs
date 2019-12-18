@@ -153,14 +153,14 @@ impl std::fmt::Debug for Cpu {
     }
 }
 
-impl std::ops::BitAndAssign<Instruction> for Cpu {
-    fn bitand_assign(&mut self, rhs: Instruction) {
+impl std::ops::ShlAssign<Instruction> for Cpu {
+    fn shl_assign(&mut self, rhs: Instruction) {
         self.process_instruction(rhs);
     }
 }
 
-impl std::ops::BitAndAssign<[u8; 4]> for Cpu {
-    fn bitand_assign(&mut self, rhs: [u8; 4]) {
+impl std::ops::ShlAssign<[u8; 4]> for Cpu {
+    fn shl_assign(&mut self, rhs: [u8; 4]) {
         self.process_instruction(Instruction::from(rhs));
     }
 }
@@ -186,8 +186,8 @@ mod tests {
         cpu.memory[0] = 1;
         cpu.memory[1] = 2;
 
-        cpu &= [0x01, 0, 0, 0];
-        cpu &= [0x01, 1, 0, 1];
+        cpu <<= [0x01, 0, 0, 0];
+        cpu <<= [0x01, 1, 0, 1];
 
         assert_eq!(cpu.registers[0], 1);
         assert_eq!(cpu.registers[1], 2);
@@ -199,8 +199,8 @@ mod tests {
         cpu.registers[0] = 1;
         cpu.registers[1] = 2;
 
-        cpu &= [0x02, 0, 0, 0];
-        cpu &= [0x02, 1, 0, 1];
+        cpu <<= [0x02, 0, 0, 0];
+        cpu <<= [0x02, 1, 0, 1];
 
         assert_eq!(cpu.memory[0], 1);
         assert_eq!(cpu.memory[1], 2);
@@ -209,8 +209,8 @@ mod tests {
     #[test]
     fn set() {
         let mut cpu = Cpu::new();
-        cpu &= [0x03, 3, 0, 0];
-        cpu &= [0x03, 8, 0, 1];
+        cpu <<= [0x03, 3, 0, 0];
+        cpu <<= [0x03, 8, 0, 1];
 
         assert_eq!(cpu.registers[0], 3);
         assert_eq!(cpu.registers[1], 8);
@@ -219,9 +219,9 @@ mod tests {
     #[test]
     fn copy() {
         let mut cpu = Cpu::new();
-        cpu &= [0x03, 3, 0, 0];
-        cpu &= [0x04, 0, 0, 1];
-        cpu &= [0x04, 1, 0, 2];
+        cpu <<= [0x03, 3, 0, 0];
+        cpu <<= [0x04, 0, 0, 1];
+        cpu <<= [0x04, 1, 0, 2];
 
         assert_eq!(cpu.registers[1], 3);
         assert_eq!(cpu.registers[2], 3);
@@ -230,81 +230,81 @@ mod tests {
     #[test]
     fn add() {
         let mut cpu = Cpu::new();
-        cpu &= [0x03, 3, 0, 0];
-        cpu &= [0x03, 2, 0, 1];
+        cpu <<= [0x03, 3, 0, 0];
+        cpu <<= [0x03, 2, 0, 1];
 
-        cpu &= [0x20, r(0), r(1), 2];
+        cpu <<= [0x20, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 5);
 
-        cpu &= [0x20, r(0), r(2), 2];
+        cpu <<= [0x20, r(0), r(2), 2];
         assert_eq!(cpu.registers[2], 8);
 
-        cpu &= [0x20, r(2), 2, 2];
+        cpu <<= [0x20, r(2), 2, 2];
         assert_eq!(cpu.registers[2], 10);
     }
 
     #[test]
     fn subtract() {
         let mut cpu = Cpu::new();
-        cpu &= [0x03, 3, 0, 0];
-        cpu &= [0x03, 2, 0, 1];
+        cpu <<= [0x03, 3, 0, 0];
+        cpu <<= [0x03, 2, 0, 1];
 
-        cpu &= [0x21, r(0), r(1), 2];
+        cpu <<= [0x21, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 1);
 
-        cpu &= [0x03, 1, 0, 1];
-        cpu &= [0x21, r(2), r(1), 2];
+        cpu <<= [0x03, 1, 0, 1];
+        cpu <<= [0x21, r(2), r(1), 2];
         assert_eq!(cpu.registers[2], 0);
 
-        cpu &= [0x21, r(0), 1, 3];
+        cpu <<= [0x21, r(0), 1, 3];
         assert_eq!(cpu.registers[3], 2);
     }
     
     #[test]
     fn multiply() {
         let mut cpu = Cpu::new();
-        cpu &= [0x03, 3, 0, 0];
-        cpu &= [0x03, 2, 0, 1];
+        cpu <<= [0x03, 3, 0, 0];
+        cpu <<= [0x03, 2, 0, 1];
 
-        cpu &= [0x22, r(0), r(1), 2];
+        cpu <<= [0x22, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 6);
 
-        cpu &= [0x22, r(0), r(2), 2];
+        cpu <<= [0x22, r(0), r(2), 2];
         assert_eq!(cpu.registers[2], 18);
 
-        cpu &= [0x22, r(0), 2, 3];
+        cpu <<= [0x22, r(0), 2, 3];
         assert_eq!(cpu.registers[3], 6);
     }
 
     #[test]
     fn divide() {
         let mut cpu = Cpu::new();
-        cpu &= [0x03, 6, 0, 0];
-        cpu &= [0x03, 2, 0, 1];
+        cpu <<= [0x03, 6, 0, 0];
+        cpu <<= [0x03, 2, 0, 1];
 
-        cpu &= [0x23, r(0), r(1), 2];
+        cpu <<= [0x23, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 3);
 
-        cpu &= [0x23, r(2), r(1), 2];
+        cpu <<= [0x23, r(2), r(1), 2];
         assert_eq!(cpu.registers[2], 1);
         
-        cpu &= [0x23, r(0), 3, 3];
+        cpu <<= [0x23, r(0), 3, 3];
         assert_eq!(cpu.registers[3], 2);
     }
 
     #[test]
     fn modulo() {
         let mut cpu = Cpu::new();
-        cpu &= [0x03, 8, 0, 0];
-        cpu &= [0x03, 3, 0, 1];
+        cpu <<= [0x03, 8, 0, 0];
+        cpu <<= [0x03, 3, 0, 1];
 
-        cpu &= [0x24, r(0), r(1), 2];
+        cpu <<= [0x24, r(0), r(1), 2];
         assert_eq!(cpu.registers[2], 2);
 
-        cpu &= [0x24, r(1), r(2), 2];
+        cpu <<= [0x24, r(1), r(2), 2];
         assert_eq!(cpu.registers[2], 1);
 
-        cpu &= [0x24, r(0), 5, 3];
+        cpu <<= [0x24, r(0), 5, 3];
         assert_eq!(cpu.registers[3], 3);
     }
 
@@ -314,13 +314,13 @@ mod tests {
         cpu.registers[0] = 1;
         cpu.registers[1] = 0;
 
-        cpu &= [0x10, r(0), 1, 5];
+        cpu <<= [0x10, r(0), 1, 5];
         assert_eq!(cpu.pc, 5);
 
-        cpu &= [0x10, r(1), 1, 5];
+        cpu <<= [0x10, r(1), 1, 5];
         assert_eq!(cpu.pc, 5);
 
-        cpu &= [0x10, r(0), 0, 3];
+        cpu <<= [0x10, r(0), 0, 3];
         assert_eq!(cpu.pc, 2);
     }
 
@@ -330,13 +330,13 @@ mod tests {
         cpu.registers[0] = 0;
         cpu.registers[1] = 1;
 
-        cpu &= [0x11, r(0), 1, 5];
+        cpu <<= [0x11, r(0), 1, 5];
         assert_eq!(cpu.pc, 5);
 
-        cpu &= [0x11, r(1), 1, 5];
+        cpu <<= [0x11, r(1), 1, 5];
         assert_eq!(cpu.pc, 5);
 
-        cpu &= [0x11, r(0), 0, 3];
+        cpu <<= [0x11, r(0), 0, 3];
         assert_eq!(cpu.pc, 2);
     }
 
@@ -346,10 +346,10 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu &= [0x30, r(0), 5, 1];
+        cpu <<= [0x30, r(0), 5, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x30, r(0), 4, 2];
+        cpu <<= [0x30, r(0), 4, 2];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -359,10 +359,10 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu &= [0x31, r(0), 4, 1];
+        cpu <<= [0x31, r(0), 4, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x31, r(0), 5, 2];
+        cpu <<= [0x31, r(0), 5, 2];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -372,10 +372,10 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu &= [0x32, r(0), 6, 1];
+        cpu <<= [0x32, r(0), 6, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x32, r(0), 4, 2];
+        cpu <<= [0x32, r(0), 4, 2];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -385,13 +385,13 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu &= [0x33, r(0), 6, 1];
+        cpu <<= [0x33, r(0), 6, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x33, r(0), 5, 1];
+        cpu <<= [0x33, r(0), 5, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x33, r(0), 4, 2];
+        cpu <<= [0x33, r(0), 4, 2];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -401,13 +401,13 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu &= [0x34, r(0), 3, 1];
+        cpu <<= [0x34, r(0), 3, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x34, r(0), 5, 2];
+        cpu <<= [0x34, r(0), 5, 2];
         assert_eq!(cpu.registers[2], 0);
 
-        cpu &= [0x34, r(0), 7, 2];
+        cpu <<= [0x34, r(0), 7, 2];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -417,13 +417,13 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu &= [0x35, r(0), 5, 1];
+        cpu <<= [0x35, r(0), 5, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x35, r(0), 4, 1];
+        cpu <<= [0x35, r(0), 4, 1];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu &= [0x35, r(0), 7, 2];
+        cpu <<= [0x35, r(0), 7, 2];
         assert_eq!(cpu.registers[2], 0);
     }
 
