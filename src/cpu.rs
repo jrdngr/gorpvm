@@ -149,6 +149,18 @@ impl std::fmt::Debug for Cpu {
     }
 }
 
+impl std::ops::BitAndAssign<Instruction> for Cpu {
+    fn bitand_assign(&mut self, rhs: Instruction) {
+        self.process_instruction(rhs);
+    }
+}
+
+impl std::ops::BitAndAssign<[u8; 4]> for Cpu {
+    fn bitand_assign(&mut self, rhs: [u8; 4]) {
+        self.process_instruction(Instruction::from(rhs));
+    }
+}
+
 /* 
  *
  *  Tests
@@ -165,8 +177,8 @@ mod tests {
         cpu.memory[0] = 1;
         cpu.memory[1] = 2;
 
-        cpu.process_instruction(Instruction::from([0x01, 0, 0, 0]));
-        cpu.process_instruction(Instruction::from([0x01, 1, 0, 1]));
+        cpu &= [0x01, 0, 0, 0];
+        cpu &= [0x01, 1, 0, 1];
 
         assert_eq!(cpu.registers[0], 1);
         assert_eq!(cpu.registers[1], 2);
@@ -178,8 +190,8 @@ mod tests {
         cpu.registers[0] = 1;
         cpu.registers[1] = 2;
 
-        cpu.process_instruction(Instruction::from([0x02, 0, 0, 0]));
-        cpu.process_instruction(Instruction::from([0x02, 1, 0, 1]));
+        cpu &= [0x02, 0, 0, 0];
+        cpu &= [0x02, 1, 0, 1];
 
         assert_eq!(cpu.memory[0], 1);
         assert_eq!(cpu.memory[1], 2);
@@ -188,77 +200,93 @@ mod tests {
     #[test]
     fn set() {
         let mut cpu = Cpu::new();
-        cpu.process_instruction(Instruction::from([0x03, 3, 0, 0]));
-        cpu.process_instruction(Instruction::from([0x03, 8, 0, 1]));
+        cpu &= [0x03, 3, 0, 0];
+        cpu &= [0x03, 8, 0, 1];
 
         assert_eq!(cpu.registers[0], 3);
         assert_eq!(cpu.registers[1], 8);
     }
 
     #[test]
+    fn copy() {
+        let mut cpu = Cpu::new();
+        cpu &= [0x03, 3, 0, 0];
+        cpu &= [0x04, 0, 0, 1];
+        cpu &= [0x04, 1, 0, 2];
+
+        assert_eq!(cpu.registers[1], 3);
+        assert_eq!(cpu.registers[2], 3);
+    }
+
+    #[test]
     fn add() {
         let mut cpu = Cpu::new();
-        cpu.process_instruction(Instruction::from([0x03, 3, 0, 0]));
-        cpu.process_instruction(Instruction::from([0x03, 2, 0, 1]));
+        cpu &= [0x03, 3, 0, 0];
+        cpu &= [0x03, 2, 0, 1];
 
-        cpu.process_instruction(Instruction::from([0x20, 0, 1, 2]));
+        cpu &= [0x20, 0, 1, 2];
         assert_eq!(cpu.registers[2], 5);
 
-        cpu.process_instruction(Instruction::from([0x20, 0, 2, 2]));
+        cpu &= [0x20, 0, 2, 2];
         assert_eq!(cpu.registers[2], 8);
     }
 
     #[test]
     fn subtract() {
         let mut cpu = Cpu::new();
-        cpu.process_instruction(Instruction::from([0x03, 3, 0, 0]));
-        cpu.process_instruction(Instruction::from([0x03, 2, 0, 1]));
+        cpu &= [0x03, 3, 0, 0];
+        cpu &= [0x03, 2, 0, 1];
 
-        cpu.process_instruction(Instruction::from([0x21, 0, 1, 2]));
+        cpu &= [0x21, 0, 1, 2];
         assert_eq!(cpu.registers[2], 1);
 
-        cpu.process_instruction(Instruction::from([0x03, 1, 0, 1]));
-        cpu.process_instruction(Instruction::from([0x21, 2, 1, 2]));
+        cpu &= [0x03, 1, 0, 1];
+        cpu &= [0x21, 2, 1, 2];
         assert_eq!(cpu.registers[2], 0);
     }
     
     #[test]
     fn multiply() {
         let mut cpu = Cpu::new();
-        cpu.process_instruction(Instruction::from([0x03, 3, 0, 0]));
-        cpu.process_instruction(Instruction::from([0x03, 2, 0, 1]));
+        cpu &= [0x03, 3, 0, 0];
+        cpu &= [0x03, 2, 0, 1];
 
-        cpu.process_instruction(Instruction::from([0x22, 0, 1, 2]));
+        cpu &= [0x22, 0, 1, 2];
         assert_eq!(cpu.registers[2], 6);
 
-        cpu.process_instruction(Instruction::from([0x22, 0, 2, 2]));
+        cpu &= [0x22, 0, 2, 2];
         assert_eq!(cpu.registers[2], 18);
     }
 
     #[test]
     fn divide() {
         let mut cpu = Cpu::new();
-        cpu.process_instruction(Instruction::from([0x03, 6, 0, 0]));
-        cpu.process_instruction(Instruction::from([0x03, 2, 0, 1]));
+        cpu &= [0x03, 6, 0, 0];
+        cpu &= [0x03, 2, 0, 1];
 
-        cpu.process_instruction(Instruction::from([0x23, 0, 1, 2]));
+        cpu &= [0x23, 0, 1, 2];
         assert_eq!(cpu.registers[2], 3);
 
-        cpu.process_instruction(Instruction::from([0x23, 2, 1, 2]));
+        cpu &= [0x23, 2, 1, 2];
         assert_eq!(cpu.registers[2], 1);
     }
 
     #[test]
     fn modulo() {
         let mut cpu = Cpu::new();
-        cpu.process_instruction(Instruction::from([0x03, 8, 0, 0]));
-        cpu.process_instruction(Instruction::from([0x03, 3, 0, 1]));
+        cpu &= [0x03, 8, 0, 0];
+        cpu &= [0x03, 3, 0, 1];
 
-        cpu.process_instruction(Instruction::from([0x24, 0, 1, 2]));
+        cpu &= [0x24, 0, 1, 2];
         assert_eq!(cpu.registers[2], 2);
 
-        cpu.process_instruction(Instruction::from([0x24, 1, 2, 2]));
+        cpu &= [0x24, 1, 2, 2];
         assert_eq!(cpu.registers[2], 1);
+    }
+
+    #[test]
+    fn jump_if_true() {
+        let mut cpu = Cpu::new();
     }
 
     // #[test]
