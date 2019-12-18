@@ -160,6 +160,32 @@ mod tests {
     use super::*;
   
     #[test]
+    fn load() {
+        let mut cpu = Cpu::new();
+        cpu.memory[0] = 1;
+        cpu.memory[1] = 2;
+
+        cpu.process_instruction(Instruction::from([0x01, 0, 0, 0]));
+        cpu.process_instruction(Instruction::from([0x01, 1, 0, 1]));
+
+        assert_eq!(cpu.registers[0], 1);
+        assert_eq!(cpu.registers[1], 2);
+    }
+
+    #[test]
+    fn store() {
+        let mut cpu = Cpu::new();
+        cpu.registers[0] = 1;
+        cpu.registers[1] = 2;
+
+        cpu.process_instruction(Instruction::from([0x02, 0, 0, 0]));
+        cpu.process_instruction(Instruction::from([0x02, 1, 0, 1]));
+
+        assert_eq!(cpu.memory[0], 1);
+        assert_eq!(cpu.memory[1], 2);
+    }
+
+    #[test]
     fn set() {
         let mut cpu = Cpu::new();
         cpu.process_instruction(Instruction::from([0x03, 3, 0, 0]));
@@ -170,84 +196,70 @@ mod tests {
     }
 
     #[test]
-    fn load() {
+    fn add() {
         let mut cpu = Cpu::new();
-        
+        cpu.process_instruction(Instruction::from([0x03, 3, 0, 0]));
+        cpu.process_instruction(Instruction::from([0x03, 2, 0, 1]));
+
+        cpu.process_instruction(Instruction::from([0x20, 0, 1, 2]));
+        assert_eq!(cpu.registers[2], 5);
+
+        cpu.process_instruction(Instruction::from([0x20, 0, 2, 2]));
+        assert_eq!(cpu.registers[2], 8);
     }
 
-    // #[test]
-    // fn store() {
-    //     use Instruction::Store;
+    #[test]
+    fn subtract() {
+        let mut cpu = Cpu::new();
+        cpu.process_instruction(Instruction::from([0x03, 3, 0, 0]));
+        cpu.process_instruction(Instruction::from([0x03, 2, 0, 1]));
 
-    //     let mut cpu = Cpu::new();
-    //     cpu.set_registers(&[1, 2, 3]);
+        cpu.process_instruction(Instruction::from([0x21, 0, 1, 2]));
+        assert_eq!(cpu.registers[2], 1);
 
-    //     cpu.evaluate(Store(0, 0));
-    //     cpu.evaluate(Store(1, 1));
-    //     cpu.evaluate(Store(2, 2));
+        cpu.process_instruction(Instruction::from([0x03, 1, 0, 1]));
+        cpu.process_instruction(Instruction::from([0x21, 2, 1, 2]));
+        assert_eq!(cpu.registers[2], 0);
+    }
+    
+    #[test]
+    fn multiply() {
+        let mut cpu = Cpu::new();
+        cpu.process_instruction(Instruction::from([0x03, 3, 0, 0]));
+        cpu.process_instruction(Instruction::from([0x03, 2, 0, 1]));
 
-    //     assert_eq!(cpu.memory[0], 1);
-    //     assert_eq!(cpu.memory[1], 2);
-    //     assert_eq!(cpu.memory[2], 3);
+        cpu.process_instruction(Instruction::from([0x22, 0, 1, 2]));
+        assert_eq!(cpu.registers[2], 6);
 
-    //     cpu.evaluate(Store(2, 0));
-    //     assert_eq!(cpu.memory[0], 3);
-    // }
+        cpu.process_instruction(Instruction::from([0x22, 0, 2, 2]));
+        assert_eq!(cpu.registers[2], 18);
+    }
 
-    // #[test]
-    // fn add() {
-    //     use Instruction::Add;
+    #[test]
+    fn divide() {
+        let mut cpu = Cpu::new();
+        cpu.process_instruction(Instruction::from([0x03, 6, 0, 0]));
+        cpu.process_instruction(Instruction::from([0x03, 2, 0, 1]));
 
-    //     let mut cpu = Cpu::new();
-    //     cpu.set_registers(&[1, 2]);
-    //     cpu.evaluate(Add);
+        cpu.process_instruction(Instruction::from([0x23, 0, 1, 2]));
+        assert_eq!(cpu.registers[2], 3);
 
-    //     assert_eq!(cpu.registers[0], 3);
-    // }
+        cpu.process_instruction(Instruction::from([0x23, 2, 1, 2]));
+        assert_eq!(cpu.registers[2], 1);
+    }
 
-    // #[test]
-    // fn subtract() {
-    //     use Instruction::Sub;
+    #[test]
+    fn modulo() {
+        let mut cpu = Cpu::new();
+        cpu.process_instruction(Instruction::from([0x03, 8, 0, 0]));
+        cpu.process_instruction(Instruction::from([0x03, 3, 0, 1]));
 
-    //     let mut cpu = Cpu::new();
-    //     cpu.set_registers(&[5, 2]);
-    //     cpu.evaluate(Sub);
+        cpu.process_instruction(Instruction::from([0x24, 0, 1, 2]));
+        assert_eq!(cpu.registers[2], 2);
 
-    //     assert_eq!(cpu.registers[0], 3);
-    // }
-
-    // #[test]
-    // fn multiply() {
-    //     use Instruction::Mul;
-
-    //     let mut cpu = Cpu::new();
-    //     cpu.set_registers(&[3, 5]);
-    //     cpu.evaluate(Mul);
-
-    //     assert_eq!(cpu.registers[0], 15);
-    // }
-
-    // #[test]
-    // fn divide() {
-    //     use Instruction::Div;
-
-    //     let mut cpu = Cpu::new();
-    //     cpu.set_registers(&[8, 2]);
-    //     cpu.evaluate(Div);
-
-    //     assert_eq!(cpu.registers[0], 4);
-    // }
-
-    // #[test]
-    // fn modulo() {
-    //     use Instruction::Mod;
-
-    //     let mut cpu = Cpu::new();
-    //     cpu.set_registers(&[7, 3]);
-    //     cpu.evaluate(Mod);
-
-    //     assert_eq!(cpu.registers[0], 1);
-    // }
+        cpu.process_instruction(Instruction::from([0x24, 1, 2, 2]));
+        assert_eq!(cpu.registers[2], 1);
+    }
 
     // #[test]
     // fn looping_addition_program() {
