@@ -24,24 +24,22 @@ impl Cpu {
     pub fn run(&mut self) {
         self.state = State::Running;
         while self.pc < self.rom.len() && self.state == State::Running {
-            self.pc += 1;
             let next_instruction = self.rom[self.pc];
             self.process_instruction(next_instruction);
+            self.pc += 1;
         }
     }
 
     pub fn load_program(&mut self, program: &[u8]) {
-        self.rom = Vec::with_capacity((program.len() / 4) + 1);
-        let loop_end = program.len() - program.len() % 4;
-        
-        let mut index = 0;
-        while index < loop_end {
-            let instruction = (program[index + 0] as u32) << 24
-                            | (program[index + 1] as u32) << 16
-                            | (program[index + 2] as u32) << 8
-                            |  program[index + 3] as u32;
-            self.rom.push(Instruction::from(instruction));
-            index += 4;
+        use std::io::Read;
+        use std::io::BufReader;
+
+        self.rom = Vec::with_capacity(program.len() / 4);
+
+        let mut reader = BufReader::new(program);
+        let mut buffer = [0; 4];
+        while let Ok(()) = reader.read_exact(&mut buffer) {
+            self.rom.push(Instruction::from(buffer));
         }
     }
 

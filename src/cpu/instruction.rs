@@ -6,6 +6,17 @@ pub struct Instruction {
     pub dest: u8,
 }
 
+impl From<[u8; 4]> for Instruction {
+    fn from(bytes: [u8; 4]) -> Self {
+        Self {
+            opcode: bytes[0],
+            src1: bytes[1],
+            src2: bytes[2],
+            dest: bytes[3],
+        }
+    }
+}
+
 impl From<u32> for Instruction {
     fn from(value: u32) -> Self {
         Self {
@@ -14,6 +25,15 @@ impl From<u32> for Instruction {
             src2:   ((value & 0x0000FF00) >> 8) as u8,
             dest:    (value & 0x000000FF) as u8,
         }
+    }
+}
+
+impl From<Instruction> for u32 {
+    fn from(instruction: Instruction) -> u32 {
+        (instruction.opcode as u32) << 24 |
+        (instruction.src1 as u32)   << 16 |
+        (instruction.src2 as u32)   << 8  |
+        (instruction.dest as u32)
     }
 }
 

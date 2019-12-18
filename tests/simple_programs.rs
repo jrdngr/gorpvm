@@ -4,7 +4,6 @@ use gorpvm::cpu::Cpu;
 fn looping_addition_program() {
     let mut cpu = Cpu::new();
     cpu.load_program(&[
-        0, 0, 0, 0,
         0x03, 0b1000_0001, 0, 0,
         0x03, 0b1000_0001, 0, 1,
         0x20, 0, 1, 1,
