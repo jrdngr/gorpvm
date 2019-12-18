@@ -436,12 +436,17 @@ mod tests {
             0x20, r(0), r(1), 1,
             0x32, r(1), 8, 3,
             0x10, r(3), 0, 3,
+            0x11, r(2), 1, 2,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0x03, 9, 0, 2,
             0,
         ]);
         cpu.run();
 
         assert_eq!(cpu.registers[0], 1);
         assert_eq!(cpu.registers[1], 8);
+        assert_eq!(cpu.registers[2], 9);
         assert_eq!(cpu.registers[3], 0);
     }
 }
