@@ -116,18 +116,18 @@ impl std::fmt::Display for Instruction {
 10 - jmpt test sign pos
 11 - jmpf test sign pos
 
-20 - add x y rd
-21 - sub x y rd
-22 - mul x y rd
-23 - div x y rd
-24 - mod x y rd
+20 - add x y dest
+21 - sub x y dest
+22 - mul x y dest
+23 - div x y dest
+24 - mod x y dest
 
-30 - eq x y rd
-31 - ne x y rd
-32 - lt x y rd
-33 - le x y rd
-34 - gt x y rd
-35 - ge x y rd
+30 - eq x y dest
+31 - ne x y dest
+32 - lt x y dest
+33 - le x y dest
+34 - gt x y dest
+35 - ge x y dest
 
 */
 

@@ -1,3 +1,4 @@
+pub mod assembly;
 pub mod instruction;
 
 use self::instruction::Instruction;

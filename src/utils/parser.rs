@@ -15,24 +15,32 @@ where
     }
 }
 
-pub fn literal<'a>(expected: &'static str) -> impl Parser<'a, ()> {
+pub fn literal<'a>(expected: &'static str) -> impl Parser<'a, String> {
     move |input: &'a str| match input.get(0..expected.len()) {
-        Some(next) if next == expected => Ok((&input[expected.len()..], ())),
+        Some(next) if next == expected => Ok((&input[expected.len()..], expected.to_string())),
         _ => Err(input)
     }
 }
 
-pub fn identifier(input: &str) -> ParseResult<String> {
+pub fn predicate<F>(input: &str, predicate: F) -> ParseResult<String> 
+where
+    F: Fn(char) -> bool,
+{
+    match input.chars().nth(0) {
+        Some(ch) if predicate(ch) => Ok((&input[1..], ch.to_string())),
+        _ => Err(input),
+    }
+}
+
+pub fn take_while<F>(input: &str, predicate: F) -> ParseResult<String> 
+where
+    F: Fn(char) -> bool,
+{
     let mut matched = String::new();
     let mut chars = input.chars();
 
-    match chars.next() {
-        Some(next) if next.is_alphabetic() => matched.push(next),
-        _ => return Err(input),
-    }
-
     while let Some(next) = chars.next() {
-        if next.is_alphanumeric() {
+        if predicate(next) {
             matched.push(next);
         } else {
             break;
@@ -69,20 +77,31 @@ where
     }
 }
 
-pub fn left<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, R1>
+pub fn one_of<'a, P, R>(parsers: Vec<P>) -> impl Parser<'a, R> 
 where
-    P1: Parser<'a, R1>,
-    P2: Parser<'a, R2>,
+    P: Parser<'a, R>
 {
-    map(pair(parser1, parser2), |(left, _)| left)
+    move |input| {
+        let mut parsers = parsers.iter();
+
+        while let Some(parser) = parsers.next() {
+            if let Ok(result) = parser.parse(input) {
+                return Ok(result);
+            }
+        }
+
+        Err(input)
+    }
 }
 
-pub fn right<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, R2>
+pub fn optional<'a, P, R>(parser: P) -> impl Parser<'a, Option<R>>
 where
-    P1: Parser<'a, R1>,
-    P2: Parser<'a, R2>,
+    P: Parser<'a, R>,
 {
-    map(pair(parser1, parser2), |(_, right)| right)
+    move |input| {
+        match parser.parse(input) {
+            Ok((rest, result)) => Ok((rest, Some(result))),
+            Err(input) => Ok((input, None)),
+        }
+    }
 }
-
-// Continue: https://bodil.lol/parser-combinators/#one-or-more
