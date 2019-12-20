@@ -32,7 +32,7 @@ where
     }
 }
 
-pub fn take_while<F>(input: &str, predicate: F) -> ParseResult<String> 
+pub fn zero_or_more<F>(input: &str, predicate: F) -> ParseResult<String> 
 where
     F: Fn(char) -> bool,
 {
@@ -49,6 +49,29 @@ where
 
     let next_index = matched.len();
     Ok((&input[next_index..], matched))
+}
+
+pub fn one_or_more<F>(input: &str, predicate: F) -> ParseResult<String> 
+where
+    F: Fn(char) -> bool,
+{
+    let mut matched = String::new();
+    let mut chars = input.chars();
+
+    while let Some(next) = chars.next() {
+        if predicate(next) {
+            matched.push(next);
+        } else {
+            break;
+        }
+    }
+
+    if matched.is_empty() {
+        Err(input)
+    } else {
+        let next_index = matched.len();
+        Ok((&input[next_index..], matched))
+    }
 }
 
 pub fn pair<'a, P1, P2, R1, R2>(parser1: P1, parser2: P2) -> impl Parser<'a, (R1, R2)>
