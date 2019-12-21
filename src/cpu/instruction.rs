@@ -1,18 +1,18 @@
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Instruction {
     pub opcode: u8,
-    pub src1: u8,
-    pub src2: u8,
     pub dest: u8,
+    pub op1: u8,
+    pub op2: u8,
 }
 
 impl From<[u8; 4]> for Instruction {
     fn from(bytes: [u8; 4]) -> Self {
         Self {
             opcode: bytes[0],
-            src1: bytes[1],
-            src2: bytes[2],
-            dest: bytes[3],
+            dest: bytes[1],
+            op1: bytes[2],
+            op2: bytes[3],
         }
     }
 }
@@ -21,9 +21,9 @@ impl From<u32> for Instruction {
     fn from(value: u32) -> Self {
         Self {
             opcode: ((value & 0xFF000000) >> 24) as u8,
-            src1:   ((value & 0x00FF0000) >> 16) as u8,
-            src2:   ((value & 0x0000FF00) >> 8) as u8,
-            dest:    (value & 0x000000FF) as u8,
+            dest:   ((value & 0x00FF0000) >> 16) as u8,
+            op1:    ((value & 0x0000FF00) >> 8) as u8,
+            op2:     (value & 0x000000FF) as u8,
         }
     }
 }
@@ -37,15 +37,16 @@ impl From<&str> for Instruction {
 impl From<Instruction> for u32 {
     fn from(instruction: Instruction) -> u32 {
         (instruction.opcode as u32) << 24 |
-        (instruction.src1 as u32)   << 16 |
-        (instruction.src2 as u32)   << 8  |
-        (instruction.dest as u32)
+        (instruction.dest as u32)   << 16 |
+        (instruction.op1 as u32)    << 8  |
+        (instruction.op2 as u32)
+        
     }
 }
 
 impl Instruction {
     pub fn into_parts(self) -> (u8, u8, u8, u8) {
-        (self.opcode, self.src1, self.src2, self.dest)
+        (self.opcode, self.dest, self.op1, self.op2)
     }
 
     pub fn as_assembly(&self) -> String {
@@ -71,11 +72,12 @@ impl Instruction {
             _    => "invalid",
         };
 
-        let src1 = Self::parameter_as_str(self.src1);
-        let src2 = Self::parameter_as_str(self.src2);
         let dest = Self::parameter_as_str(self.dest);
+        let op1 = Self::parameter_as_str(self.op1);
+        let op2 = Self::parameter_as_str(self.op2);
+        
 
-        format!("{} {} {} {}", instruction, src1, src2, dest)
+        format!("{} {} {} {}", instruction, dest, op1, op2)
     }
 
     fn parameter_as_str(parameter: u8) -> String {
@@ -111,29 +113,28 @@ impl std::fmt::Display for Instruction {
 01xx - offset
 1xxx - immediate
 
-
 00 - halt
 
 01 - load reg mem
-02 - stor reg mem
+02 - stor mem reg
 03 - set reg val
-04 - copy reg1 reg2
+04 - copy destreg srcreg
 
-10 - jmpt test sign pos
-11 - jmpf test sign pos
+10 - jmpt pos test sign 
+11 - jmpf pos test sign
 
-20 - add x y dest
-21 - sub x y dest
-22 - mul x y dest
-23 - div x y dest
-24 - mod x y dest
+20 - add dest x y 
+21 - sub dest x y
+22 - mul dest x y
+23 - div dest x y
+24 - mod dest x y
 
-30 - eq x y dest
-31 - ne x y dest
-32 - lt x y dest
-33 - le x y dest
-34 - gt x y dest
-35 - ge x y dest
+30 - eq dest x y
+31 - ne dest x y
+32 - lt dest x y
+33 - le dest x y
+34 - gt dest x y
+35 - ge dest x y
 
 */
 

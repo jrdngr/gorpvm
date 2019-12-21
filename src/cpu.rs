@@ -70,41 +70,43 @@ impl Cpu {
     }
 
     fn process_instruction(&mut self, instruction: Instruction) {
-        let (src1, src2, dest) = self.evaluate_all_parameters(instruction);
-        
+        // dbg!(instruction.as_assembly());
+        let (dest, op1, op2) = self.evaluate_all_parameters(instruction);
+
         match instruction.opcode {
             0x00 => self.state = State::Halting,
-            0x01 => self.registers[dest] = self.memory[src1],
-            0x02 => self.memory[dest] = self.registers[src1],
-            0x03 => self.registers[dest] = src1,
-            0x04 => self.registers[dest] = self.registers[src1],
-            0x10 => if src1 > 0 {
-                if src2 == 0 {
+            0x01 => self.registers[dest] = self.memory[op1],
+            0x02 => self.memory[dest] = self.registers[op1],
+            0x03 => self.registers[dest] = op1,
+            0x04 => self.registers[dest] = self.registers[op1],
+            0x10 => if op1 > 0 {
+                if op2 == 0 {
                     self.pc -= dest
                 } else {
                     self.pc += dest
                 }
             },
-            0x11 => if src1 == 0 {
-                if src2 == 0 {
+            0x11 => if op1 == 0 {
+                if op2 == 0 {
                     self.pc -= dest
                 } else {
                     self.pc += dest
                 }
             },
-            0x20 => self.registers[dest] = src1 + src2,
-            0x21 => self.registers[dest] = src1 - src2,
-            0x22 => self.registers[dest] = src1 * src2,
-            0x23 => self.registers[dest] = src1 / src2,
-            0x24 => self.registers[dest] = src1 % src2,
-            0x30 => self.registers[dest] = if src1 == src2 { 1 } else { 0 },
-            0x31 => self.registers[dest] = if src1 != src2 { 1 } else { 0 },
-            0x32 => self.registers[dest] = if src1 < src2 { 1 } else { 0 },
-            0x33 => self.registers[dest] = if src1 <= src2 { 1 } else { 0 },
-            0x34 => self.registers[dest] = if src1 > src2 { 1 } else { 0 },
-            0x35 => self.registers[dest] = if src1 >= src2 { 1 } else { 0 },
+            0x20 => self.registers[dest] = op1 + op2,
+            0x21 => self.registers[dest] = op1 - op2,
+            0x22 => self.registers[dest] = op1 * op2,
+            0x23 => self.registers[dest] = op1 / op2,
+            0x24 => self.registers[dest] = op1 % op2,
+            0x30 => self.registers[dest] = if op1 == op2 { 1 } else { 0 },
+            0x31 => self.registers[dest] = if op1 != op2 { 1 } else { 0 },
+            0x32 => self.registers[dest] = if op1 < op2 { 1 } else { 0 },
+            0x33 => self.registers[dest] = if op1 <= op2 { 1 } else { 0 },
+            0x34 => self.registers[dest] = if op1 > op2 { 1 } else { 0 },
+            0x35 => self.registers[dest] = if op1 >= op2 { 1 } else { 0 },
             _ => panic!("Unknown instruction: {}", instruction.opcode),
         }
+        // dbg!(&self);
     }
 
     fn evaluate_parameter(&self, parameter: u8) -> usize {
@@ -131,8 +133,8 @@ impl Cpu {
     }
 
     fn evaluate_all_parameters(&self, instruction: Instruction) -> (usize, usize, usize) {
-        let (_, src1, src2, dest) = instruction.into_parts();
-        (self.evaluate_parameter(src1), self.evaluate_parameter(src2), self.evaluate_parameter(dest))
+        let (_, dest, op1, op2) = instruction.into_parts();
+        (self.evaluate_parameter(dest), self.evaluate_parameter(op1), self.evaluate_parameter(op2))
     }
 
     // pub fn input(&mut self) {
@@ -212,7 +214,7 @@ mod tests {
         cpu.memory[1] = 2;
 
         cpu <<= [0x01, 0, 0, 0];
-        cpu <<= [0x01, 1, 0, 1];
+        cpu <<= [0x01, 1, 1, 0];
 
         assert_eq!(cpu.registers[0], 1);
         assert_eq!(cpu.registers[1], 2);
@@ -225,7 +227,7 @@ mod tests {
         cpu.registers[1] = 2;
 
         cpu <<= [0x02, 0, 0, 0];
-        cpu <<= [0x02, 1, 0, 1];
+        cpu <<= [0x02, 1, 1, 0];
 
         assert_eq!(cpu.memory[0], 1);
         assert_eq!(cpu.memory[1], 2);
@@ -234,8 +236,8 @@ mod tests {
     #[test]
     fn set() {
         let mut cpu = Cpu::new();
-        cpu <<= [0x03, 3, 0, 0];
-        cpu <<= [0x03, 8, 0, 1];
+        cpu <<= [0x03, 0, 3, 0];
+        cpu <<= [0x03, 1, 8, 0];
 
         assert_eq!(cpu.registers[0], 3);
         assert_eq!(cpu.registers[1], 8);
@@ -244,9 +246,9 @@ mod tests {
     #[test]
     fn copy() {
         let mut cpu = Cpu::new();
-        cpu <<= [0x03, 3, 0, 0];
-        cpu <<= [0x04, 0, 0, 1];
-        cpu <<= [0x04, 1, 0, 2];
+        cpu <<= [0x03, 0, 3, 0];
+        cpu <<= [0x04, 1, 0, 0];
+        cpu <<= [0x04, 2, 1, 0];
 
         assert_eq!(cpu.registers[1], 3);
         assert_eq!(cpu.registers[2], 3);
@@ -255,81 +257,81 @@ mod tests {
     #[test]
     fn add() {
         let mut cpu = Cpu::new();
-        cpu <<= [0x03, 3, 0, 0];
-        cpu <<= [0x03, 2, 0, 1];
+        cpu <<= [0x03, 0, 3, 0];
+        cpu <<= [0x03, 1, 2, 0];
 
-        cpu <<= [0x20, r(0), r(1), 2];
+        cpu <<= [0x20, 2, r(0), r(1)];
         assert_eq!(cpu.registers[2], 5);
 
-        cpu <<= [0x20, r(0), r(2), 2];
+        cpu <<= [0x20, 2, r(0), r(2)];
         assert_eq!(cpu.registers[2], 8);
 
-        cpu <<= [0x20, r(2), 2, 2];
+        cpu <<= [0x20, 2, r(2), 2];
         assert_eq!(cpu.registers[2], 10);
     }
 
     #[test]
     fn subtract() {
         let mut cpu = Cpu::new();
-        cpu <<= [0x03, 3, 0, 0];
-        cpu <<= [0x03, 2, 0, 1];
+        cpu <<= [0x03, 0, 3, 0];
+        cpu <<= [0x03, 1 ,2, 0];
 
-        cpu <<= [0x21, r(0), r(1), 2];
+        cpu <<= [0x21, 2, r(0), r(1)];
         assert_eq!(cpu.registers[2], 1);
 
-        cpu <<= [0x03, 1, 0, 1];
-        cpu <<= [0x21, r(2), r(1), 2];
+        cpu <<= [0x03, 1, 1, 0];
+        cpu <<= [0x21, 2, r(2), r(1)];
         assert_eq!(cpu.registers[2], 0);
 
-        cpu <<= [0x21, r(0), 1, 3];
+        cpu <<= [0x21, 3, r(0), 1];
         assert_eq!(cpu.registers[3], 2);
     }
     
     #[test]
     fn multiply() {
         let mut cpu = Cpu::new();
-        cpu <<= [0x03, 3, 0, 0];
-        cpu <<= [0x03, 2, 0, 1];
+        cpu <<= [0x03, 0, 3, 0];
+        cpu <<= [0x03, 1, 2, 0];
 
-        cpu <<= [0x22, r(0), r(1), 2];
+        cpu <<= [0x22, 2, r(0), r(1)];
         assert_eq!(cpu.registers[2], 6);
 
-        cpu <<= [0x22, r(0), r(2), 2];
+        cpu <<= [0x22, 2, r(0), r(2)];
         assert_eq!(cpu.registers[2], 18);
 
-        cpu <<= [0x22, r(0), 2, 3];
+        cpu <<= [0x22, 3, r(0), 2];
         assert_eq!(cpu.registers[3], 6);
     }
 
     #[test]
     fn divide() {
         let mut cpu = Cpu::new();
-        cpu <<= [0x03, 6, 0, 0];
-        cpu <<= [0x03, 2, 0, 1];
+        cpu <<= [0x03, 0, 6, 0];
+        cpu <<= [0x03, 1, 2, 0];
 
-        cpu <<= [0x23, r(0), r(1), 2];
+        cpu <<= [0x23, 2, r(0), r(1)];
         assert_eq!(cpu.registers[2], 3);
 
-        cpu <<= [0x23, r(2), r(1), 2];
+        cpu <<= [0x23, 2, r(2), r(1)];
         assert_eq!(cpu.registers[2], 1);
         
-        cpu <<= [0x23, r(0), 3, 3];
+        cpu <<= [0x23, 3, r(0), 3];
         assert_eq!(cpu.registers[3], 2);
     }
 
     #[test]
     fn modulo() {
         let mut cpu = Cpu::new();
-        cpu <<= [0x03, 8, 0, 0];
-        cpu <<= [0x03, 3, 0, 1];
+        cpu <<= [0x03, 0, 8, 0];
+        cpu <<= [0x03, 1, 3, 0];
 
-        cpu <<= [0x24, r(0), r(1), 2];
+        cpu <<= [0x24, 2, r(0), r(1)];
         assert_eq!(cpu.registers[2], 2);
 
-        cpu <<= [0x24, r(1), r(2), 2];
+        cpu <<= [0x24, 2, r(1), r(2)];
         assert_eq!(cpu.registers[2], 1);
 
-        cpu <<= [0x24, r(0), 5, 3];
+        cpu <<= [0x24, 3, r(0), 5];
         assert_eq!(cpu.registers[3], 3);
     }
 
@@ -339,13 +341,13 @@ mod tests {
         cpu.registers[0] = 1;
         cpu.registers[1] = 0;
 
-        cpu <<= [0x10, r(0), 1, 5];
+        cpu <<= [0x10, 5, r(0), 1];
         assert_eq!(cpu.pc, 5);
 
-        cpu <<= [0x10, r(1), 1, 5];
+        cpu <<= [0x10, 5, r(1), 1];
         assert_eq!(cpu.pc, 5);
 
-        cpu <<= [0x10, r(0), 0, 3];
+        cpu <<= [0x10, 3, r(0), 0];
         assert_eq!(cpu.pc, 2);
     }
 
@@ -355,13 +357,13 @@ mod tests {
         cpu.registers[0] = 0;
         cpu.registers[1] = 1;
 
-        cpu <<= [0x11, r(0), 1, 5];
+        cpu <<= [0x11, 5, r(0), 1];
         assert_eq!(cpu.pc, 5);
 
-        cpu <<= [0x11, r(1), 1, 5];
+        cpu <<= [0x11, 5, r(1), 1];
         assert_eq!(cpu.pc, 5);
 
-        cpu <<= [0x11, r(0), 0, 3];
+        cpu <<= [0x11, 3, r(0), 0];
         assert_eq!(cpu.pc, 2);
     }
 
@@ -371,10 +373,10 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu <<= [0x30, r(0), 5, 1];
+        cpu <<= [0x30, 1, r(0), 5];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu <<= [0x30, r(0), 4, 2];
+        cpu <<= [0x30, 2, r(0), 4];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -384,10 +386,10 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu <<= [0x31, r(0), 4, 1];
+        cpu <<= [0x31, 1, r(0), 4];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu <<= [0x31, r(0), 5, 2];
+        cpu <<= [0x31, 2, r(0), 5];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -397,10 +399,10 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu <<= [0x32, r(0), 6, 1];
+        cpu <<= [0x32, 1, r(0), 6];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu <<= [0x32, r(0), 4, 2];
+        cpu <<= [0x32, 2, r(0), 4];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -410,13 +412,13 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu <<= [0x33, r(0), 6, 1];
+        cpu <<= [0x33, 1, r(0), 6];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu <<= [0x33, r(0), 5, 1];
+        cpu <<= [0x33, 1, r(0), 5];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu <<= [0x33, r(0), 4, 2];
+        cpu <<= [0x33, 2, r(0), 4];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -426,13 +428,13 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu <<= [0x34, r(0), 3, 1];
+        cpu <<= [0x34, 1, r(0), 3];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu <<= [0x34, r(0), 5, 2];
+        cpu <<= [0x34, 2, r(0), 5];
         assert_eq!(cpu.registers[2], 0);
 
-        cpu <<= [0x34, r(0), 7, 2];
+        cpu <<= [0x34, 2, r(0), 7];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -442,13 +444,13 @@ mod tests {
         cpu.registers[0] = 5;
         cpu.registers[2] = 5;
 
-        cpu <<= [0x35, r(0), 5, 1];
+        cpu <<= [0x35, 1, r(0), 5];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu <<= [0x35, r(0), 4, 1];
+        cpu <<= [0x35, 1, r(0), 4];
         assert_eq!(cpu.registers[1], 1);
 
-        cpu <<= [0x35, r(0), 7, 2];
+        cpu <<= [0x35, 2, r(0), 7];
         assert_eq!(cpu.registers[2], 0);
     }
 
@@ -456,15 +458,15 @@ mod tests {
     fn looping_addition_program() {
         let mut cpu = Cpu::new();
         cpu.load_bytes(&[
-            0x03, 1, 0, 0,
-            0x03, 1, 0, 1,
-            0x20, r(0), r(1), 1,
-            0x32, r(1), 8, 3,
-            0x10, r(3), 0, 3,
-            0x11, r(2), 1, 2,
+            0x03, 0, 1, 0,
+            0x03, 1, 1, 0,
+            0x20, 1, r(0), r(1),
+            0x32, 3, r(1), 8,
+            0x10, 3, r(3), 0,
+            0x11, 2, r(2), 1,
             0, 0, 0, 0,
             0, 0, 0, 0,
-            0x03, 9, 0, 2,
+            0x03, 2, 9, 0,
             0,
         ]);
         cpu.run();
