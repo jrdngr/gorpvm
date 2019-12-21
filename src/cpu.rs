@@ -184,6 +184,12 @@ impl std::ops::ShlAssign<[u8; 4]> for Cpu {
     }
 }
 
+impl std::ops::ShlAssign<&str> for Cpu {
+    fn shl_assign(&mut self, rhs: &str) {
+        self.process_instruction(Instruction::from(rhs))
+    }
+}
+
 /* 
  *
  *  Tests

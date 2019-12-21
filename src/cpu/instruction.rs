@@ -28,6 +28,12 @@ impl From<u32> for Instruction {
     }
 }
 
+impl From<&str> for Instruction {
+    fn from(value: &str) -> Self {
+        crate::cpu::assembly::parse_instruction(value)
+    }
+}
+
 impl From<Instruction> for u32 {
     fn from(instruction: Instruction) -> u32 {
         (instruction.opcode as u32) << 24 |
