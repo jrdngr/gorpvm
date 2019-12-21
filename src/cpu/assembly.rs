@@ -85,17 +85,18 @@ pub fn parse_value(value_number: &str, value_mode: &str) -> u8 {
 
 pub fn parse_instruction(instruction: &str) -> Instruction {
     let (rest, opcode) = opcode().parse(instruction).expect("Parsing error");
-    let _ = literal(" ").parse(rest);
-    let (rest, arg1) = value().parse(rest).expect("Parsing error");
-    let _ = literal(" ").parse(rest);
-    let (rest, arg2) = value().parse(rest).expect("Parsing error");
-    let _ = optional(literal(" ")).parse(rest);
-    let (_, arg3) = optional(value()).parse(rest).expect("Parsing error");
-
     let opcode = parse_opcode(&opcode);
     if opcode == 0 {
         return Instruction { opcode, src1: 0, src2: 0, dest: 0 };
     }
+
+    let (rest, _) = literal(" ").parse(rest).expect("Parsing error");
+    let (rest, arg1) = value().parse(rest).expect("Parsing error");
+    let (rest, _) = literal(" ").parse(rest).expect("Parsing error");
+    let (rest, arg2) = value().parse(rest).expect("Parsing error");
+    let (rest, _) = optional(literal(" ")).parse(rest).expect("Parsing error");
+    let (_, arg3) = optional(value()).parse(rest).expect("Parsing error");
+
 
     let src1 = parse_value(&arg1.0, &arg1.1);
 
@@ -146,11 +147,27 @@ mod tests {
         });
 
         let i2 = parse_instruction("load 0 1");
-        
-        
+        assert_eq!(i2, Instruction {
+            opcode: 1,
+            src1: 128,
+            src2: 0,
+            dest: 129,
+        });
+
         let i3 = parse_instruction("store 0 1");
-        
+        assert_eq!(i3, Instruction {
+            opcode: 2,
+            src1: 128,
+            src2: 0,
+            dest: 129,
+        });
         
         let i4 = parse_instruction("add 0 1 2");
+        assert_eq!(i4, Instruction {
+            opcode: 32,
+            src1: 128,
+            src2: 129,
+            dest: 130,
+        });
     }
 }
