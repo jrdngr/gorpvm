@@ -1,6 +1,7 @@
 pub mod assembly;
 pub mod instruction;
 
+use self::assembly::parse_instruction;
 use self::instruction::Instruction;
 
 #[derive(Debug, PartialEq)]
@@ -30,17 +31,34 @@ impl Cpu {
         }
     }
 
-    pub fn load_program(&mut self, program: &[u8]) {
+    pub fn load_bytes(&mut self, bytes: &[u8]) {
         use std::io::Read;
         use std::io::BufReader;
 
-        self.rom = Vec::with_capacity(program.len() / 4);
+        self.rom = Vec::with_capacity(bytes.len() / 4);
 
-        let mut reader = BufReader::new(program);
+        let mut instructions = Vec::new();
+        let mut reader = BufReader::new(bytes);
         let mut buffer = [0; 4];
         while let Ok(()) = reader.read_exact(&mut buffer) {
-            self.rom.push(Instruction::from(buffer));
+            instructions.push(Instruction::from(buffer));
         }
+        self.load_instructions(instructions);
+    }
+
+    pub fn load_instructions(&mut self, instructions: Vec<Instruction>) {
+        self.rom = instructions;
+    }
+
+    pub fn load_assembly(&mut self, assembly: &str) {
+        let instructions: Vec<Instruction> = assembly
+            .lines()
+            .map(|line| line.trim())
+            .filter(|line| !line.is_empty())
+            .map(parse_instruction)
+            .collect();
+
+        self.load_instructions(instructions);
     }
 
     pub fn registers(&self) -> &[usize] {
@@ -431,7 +449,7 @@ mod tests {
     #[test]
     fn looping_addition_program() {
         let mut cpu = Cpu::new();
-        cpu.load_program(&[
+        cpu.load_bytes(&[
             0x03, 1, 0, 0,
             0x03, 1, 0, 1,
             0x20, r(0), r(1), 1,
