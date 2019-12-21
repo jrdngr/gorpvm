@@ -6,8 +6,8 @@ I'm making myself a little pretend computer!
 * ~~Define machine code instructions~~
 * ~~Assembly language~~
   * Clean up notation
-  * All instructions 3-4 characters
-  * Value mode notation
+    * ~~All instructions 3-4 characters~~
+    * Value mode notation
 * Input/output
 * Debugger
 * Write some programs
