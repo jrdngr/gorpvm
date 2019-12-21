@@ -7,11 +7,11 @@ fn looping_addition_program() {
     set 1 0
     set 1 1
     add 0r 1r 1
-    lt 1r 8 3
-    jmpt 3r 0 3
-    jmpf 2r 1 2
-    halt
-    halt
+    let 1r 8 3
+    jpt 3r 0 3
+    jpf 2r 1 2
+    hlt
+    hlt
     set 9 2
     ";
     cpu.load_assembly(program);

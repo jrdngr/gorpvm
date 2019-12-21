@@ -4,24 +4,24 @@ use crate::utils::parser::{Parser, literal, one_of, predicate, pair, one_or_more
 pub fn opcode<'a>() -> impl Parser<'a, String> {
     move |input| {
         let parsers = vec![
-            literal("halt"),
-            literal("load"),
-            literal("store"),
+            literal("hlt"),
+            literal("ldr"),
+            literal("str"),
             literal("set"),
-            literal("copy"),
-            literal("jmpt"),
-            literal("jmpf"),
+            literal("cpy"),
+            literal("jpt"),
+            literal("jpf"),
             literal("add"),
             literal("sub"),
             literal("mul"),
             literal("div"),
             literal("mod"),
-            literal("eq"),
-            literal("ne"),
-            literal("lt"),
-            literal("le"),
-            literal("gt"),
-            literal("ge"),
+            literal("eql"),
+            literal("neq"),
+            literal("let"),
+            literal("leq"),
+            literal("grt"),
+            literal("geq"),
         ];
 
         one_of(parsers).parse(input)
@@ -47,24 +47,24 @@ pub fn value<'a>() -> impl Parser<'a, (String, String)> {
 
 pub fn parse_opcode(opcode: &str) -> u8 {
     match opcode {
-        "halt"  => 0x00,
-        "load"  => 0x01,
-        "store" => 0x02,
+        "hlt"  => 0x00,
+        "ldr"  => 0x01,
+        "str" => 0x02,
         "set"   => 0x03,
-        "copy"  => 0x04,
-        "jmpt"  => 0x10,
-        "jmpf"  => 0x11,
+        "cpy"  => 0x04,
+        "jpt"  => 0x10,
+        "jpf"  => 0x11,
         "add"   => 0x20,
         "sub"   => 0x21,
         "mul"   => 0x22,
         "div"   => 0x23,
         "mod"   => 0x24,
-        "eq"    => 0x30,
-        "ne"    => 0x31,
-        "lt"    => 0x32,
-        "le"    => 0x33,
-        "gt"    => 0x34,
-        "ge"    => 0x35,
+        "eql"    => 0x30,
+        "neq"    => 0x31,
+        "let"    => 0x32,
+        "leq"    => 0x33,
+        "grt"    => 0x34,
+        "geq"    => 0x35,
         _       => panic!("Invalid opcode: {}", opcode),
     }
 }
@@ -124,7 +124,7 @@ mod tests {
 
     #[test]
     fn value_parser() {
-        assert_eq!(opcode().parse("halt"), Ok(("", String::from("halt"))));
+        assert_eq!(opcode().parse("hlt"), Ok(("", String::from("hlt"))));
         assert_eq!(opcode().parse("taco"), Err("taco"));
     }
 
@@ -138,7 +138,7 @@ mod tests {
 
     #[test]
     fn instruction_parser() {
-        let i1 = parse_instruction("halt");
+        let i1 = parse_instruction("hlt");
         assert_eq!(i1, Instruction {
             opcode: 0,
             src1: 0,
@@ -146,7 +146,7 @@ mod tests {
             dest: 0,
         });
 
-        let i2 = parse_instruction("load 0 1");
+        let i2 = parse_instruction("ldr 0 1");
         assert_eq!(i2, Instruction {
             opcode: 1,
             src1: 128,
@@ -154,7 +154,7 @@ mod tests {
             dest: 129,
         });
 
-        let i3 = parse_instruction("store 0 1");
+        let i3 = parse_instruction("str 0 1");
         assert_eq!(i3, Instruction {
             opcode: 2,
             src1: 128,
