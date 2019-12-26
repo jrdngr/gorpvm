@@ -8,6 +8,7 @@ I'm making myself a little pretend computer!
   * Clean up notation
     * ~~All instructions 3-4 characters~~
     * Value mode notation
+* Make it easier to iterate on assembly language
 * Input/output
 * Debugger
 * Write some programs
