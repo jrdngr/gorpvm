@@ -1,0 +1,9 @@
+set 0 1
+set 1 1
+add 1 0r 1r
+let 3 1r 8
+jpt 3 3r 0
+jpf 2 2r 1 
+hlt
+hlt
+set 2 9

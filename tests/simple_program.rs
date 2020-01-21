@@ -15,6 +15,17 @@ fn looping_addition_program() {
     set 2 9
     ";
     cpu.load_assembly(program);
+    looping_addition_test(cpu);
+}
+
+#[test]
+fn looping_addition_from_file() {
+    let mut cpu = Cpu::new();
+    cpu.load_assembly_file("./tests/resources/simple_program.gas");
+    looping_addition_test(cpu);
+}
+
+fn looping_addition_test(mut cpu: Cpu) {
     cpu.run();
 
     assert_eq!(cpu.registers()[0], 1);

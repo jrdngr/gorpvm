@@ -61,6 +61,11 @@ impl Cpu {
         self.load_instructions(instructions);
     }
 
+    pub fn load_assembly_file<P: AsRef<std::path::Path>>(&mut self, path: P) {
+        let assembly = std::fs::read_to_string(path).expect("Error reading file");
+        self.load_assembly(&assembly);
+    }
+
     pub fn registers(&self) -> &[usize] {
         &self.registers
     }
