@@ -44,9 +44,15 @@ impl From<Instruction> for u32 {
     }
 }
 
+impl From<Instruction> for (u8, u8, u8, u8) {
+    fn from(instruction: Instruction) -> (u8, u8, u8, u8) {
+        (instruction.opcode, instruction.dest, instruction.op1, instruction.op2)
+    }
+}
+
 impl Instruction {
     pub fn into_parts(self) -> (u8, u8, u8, u8) {
-        (self.opcode, self.dest, self.op1, self.op2)
+        <(u8, u8, u8, u8)>::from(self)
     }
 
     pub fn as_assembly(&self) -> String {
