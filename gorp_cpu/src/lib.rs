@@ -109,6 +109,20 @@ impl Cpu {
             0x33 => self.registers[dest] = if op1 <= op2 { 1 } else { 0 },
             0x34 => self.registers[dest] = if op1 > op2 { 1 } else { 0 },
             0x35 => self.registers[dest] = if op1 >= op2 { 1 } else { 0 },
+            0x50 => {
+                use std::io::{self, Read};
+
+                let mut buffer = String::new();
+                io::stdin().read_to_string(&mut buffer).expect("Error reading stdin");
+                let value = buffer.parse::<usize>().expect("Input could not be parsed to a usize");
+                self.registers[dest] = value;
+            },
+            0x51 => {
+                use std::io::{self, Write};
+
+                let output = self.registers[dest].to_string();
+                io::stdout().write_all(output.as_bytes()).expect("Error writing to stdout");
+            },
             _ => panic!("Unknown instruction: {}", instruction.opcode),
         }
         // dbg!(&self);

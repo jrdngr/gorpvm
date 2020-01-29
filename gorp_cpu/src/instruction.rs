@@ -1,3 +1,47 @@
+/// # Instruction Format
+/// [  00000000  |  0000_0000  |  0000_0000  |  0000_0000  ]
+/// [  opcode    |  mode_src1  |  mode_src2  |  mode_dest  ]  
+///
+/// # Addressing
+/// 0000 - immediate  
+/// 0001 - register  
+/// 001x - ?  
+/// 01xx - offset  
+/// 1xxx - immediate  
+///
+/// # Instructions
+///
+/// 00 - halt
+///
+/// ## Data Operations
+/// 01 - load reg mem
+/// 02 - stor mem reg
+/// 03 - set reg val
+/// 04 - copy destreg srcreg
+///
+/// ## Jumps
+/// 10 - jmpt pos test sign 
+/// 11 - jmpf pos test sign
+///
+/// ## Math
+/// 20 - add dest x y 
+/// 21 - sub dest x y
+/// 22 - mul dest x y
+/// 23 - div dest x y
+/// 24 - mod dest x y
+///
+/// ## Comparison
+/// 30 - eq dest x y
+/// 31 - ne dest x y
+/// 32 - lt dest x y
+/// 33 - le dest x y
+/// 34 - gt dest x y
+/// 35 - ge dest x y
+///
+/// ## I/O
+/// 50 - sti dest
+/// 51 - sto val
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Instruction {
     pub opcode: u8,
@@ -75,6 +119,8 @@ impl Instruction {
             0x33 => "leq",
             0x34 => "grt",
             0x35 => "geq",
+            0x50 => "sti",
+            0x51 => "sto",
             _    => "invalid",
         };
 
@@ -107,34 +153,6 @@ impl std::fmt::Display for Instruction {
         write!(f, "{}", self.as_assembly())
     }
 }
-
-/*
-[  00000000  |  0000_0000  |  0000_0000  |  0000_0000  ]
-[  opcode    |  mode_src1  |  mode_src2  |  mode_dest  ]  
-0000 - immediate
-0001 - register
-001x - ?
-01xx - offset
-1xxx - immediate
-00 - halt
-01 - load reg mem
-02 - stor mem reg
-03 - set reg val
-04 - copy destreg srcreg
-10 - jmpt pos test sign 
-11 - jmpf pos test sign
-20 - add dest x y 
-21 - sub dest x y
-22 - mul dest x y
-23 - div dest x y
-24 - mod dest x y
-30 - eq dest x y
-31 - ne dest x y
-32 - lt dest x y
-33 - le dest x y
-34 - gt dest x y
-35 - ge dest x y
-*/
 
 #[cfg(test)]
 mod tests {

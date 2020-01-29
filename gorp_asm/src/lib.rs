@@ -23,6 +23,8 @@ pub fn opcode<'a>() -> impl Parser<'a, String> {
             literal("leq"),
             literal("grt"),
             literal("geq"),
+            literal("sti"),
+            literal("sto"),
         ];
 
         one_of(parsers).parse(input)
