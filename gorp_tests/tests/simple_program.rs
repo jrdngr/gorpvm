@@ -1,4 +1,4 @@
-use gorpvm::cpu::Cpu;
+use gorp_cpu::Cpu;
 
 #[test]
 fn looping_addition_program() {

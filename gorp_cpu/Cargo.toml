@@ -1,0 +1,8 @@
+[package]
+name = "gorp_cpu"
+version = "0.1.0"
+authors = ["Jordan Grace <jordan@righteye.com>"]
+edition = "2018"
+
+[dependencies]
+gorp_asm = { path = "../gorp_asm" }

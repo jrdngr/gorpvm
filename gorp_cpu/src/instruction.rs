@@ -30,7 +30,7 @@ impl From<u32> for Instruction {
 
 impl From<&str> for Instruction {
     fn from(value: &str) -> Self {
-        crate::cpu::assembly::parse_instruction(value)
+        Instruction::from(gorp_asm::parse_instruction(value))
     }
 }
 
@@ -109,39 +109,31 @@ impl std::fmt::Display for Instruction {
 }
 
 /*
-
 [  00000000  |  0000_0000  |  0000_0000  |  0000_0000  ]
 [  opcode    |  mode_src1  |  mode_src2  |  mode_dest  ]  
-
 0000 - immediate
 0001 - register
 001x - ?
 01xx - offset
 1xxx - immediate
-
 00 - halt
-
 01 - load reg mem
 02 - stor mem reg
 03 - set reg val
 04 - copy destreg srcreg
-
 10 - jmpt pos test sign 
 11 - jmpf pos test sign
-
 20 - add dest x y 
 21 - sub dest x y
 22 - mul dest x y
 23 - div dest x y
 24 - mod dest x y
-
 30 - eq dest x y
 31 - ne dest x y
 32 - lt dest x y
 33 - le dest x y
 34 - gt dest x y
 35 - ge dest x y
-
 */
 
 #[cfg(test)]

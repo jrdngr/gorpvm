@@ -1,7 +1,6 @@
-pub mod assembly;
 pub mod instruction;
 
-use self::assembly::parse_instruction;
+use gorp_asm::parse_instruction;
 use self::instruction::Instruction;
 
 #[derive(Debug, PartialEq)]
@@ -56,6 +55,7 @@ impl Cpu {
             .map(|line| line.trim())
             .filter(|line| !line.is_empty())
             .map(parse_instruction)
+            .map(Instruction::from)
             .collect();
 
         self.load_instructions(instructions);

@@ -6,8 +6,8 @@ I'm making myself a little pretend computer!
 - [x] Define machine code instructions
 - [x] Assembly language
   - [ ] Clean up notation
-    - [x] All instructions 3-4 characters
-    - [ ] Value mode notation
+    - [x] All instructions 3 characters
+    - [ ] Addressing mode cleanup
 - [ ] Make it easier to iterate on assembly language
 - [ ] Input/output
 - [ ] Debugger

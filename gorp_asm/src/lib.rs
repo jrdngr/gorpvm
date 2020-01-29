@@ -1,5 +1,6 @@
-use crate::cpu::instruction::Instruction;
-use crate::utils::parser::{Parser, literal, one_of, predicate, pair, one_or_more, optional, map};
+mod parser;
+
+use crate::parser::{Parser, literal, one_of, predicate, pair, one_or_more, optional, map};
 
 pub fn opcode<'a>() -> impl Parser<'a, String> {
     move |input| {
@@ -83,11 +84,11 @@ pub fn parse_value(value_number: &str, value_mode: &str) -> u8 {
     mode_bits | number
 }
 
-pub fn parse_instruction(instruction: &str) -> Instruction {
+pub fn parse_instruction(instruction: &str) -> [u8; 4] {
     let (rest, opcode) = opcode().parse(instruction).expect("Parsing error");
     let opcode = parse_opcode(&opcode);
     if opcode == 0 {
-        return Instruction { opcode, dest: 0, op1: 0, op2: 0 };
+        return [opcode, 0, 0, 0];
     }
 
     let (rest, _) = literal(" ").parse(rest).expect("Parsing error");
@@ -105,12 +106,7 @@ pub fn parse_instruction(instruction: &str) -> Instruction {
         None => 0,
     };
 
-    Instruction {
-        opcode,
-        dest,
-        op1,
-        op2,
-    }
+    [ opcode, dest, op1, op2 ]
 }
 
 #[cfg(test)]
@@ -134,35 +130,15 @@ mod tests {
     #[test]
     fn instruction_parser() {
         let i1 = parse_instruction("hlt");
-        assert_eq!(i1, Instruction {
-            opcode: 0,
-            dest: 0,
-            op1: 0,
-            op2: 0,
-        });
+        assert_eq!(i1, [0, 0, 0, 0]);
 
         let i2 = parse_instruction("ldr 0 1");
-        assert_eq!(i2, Instruction {
-            opcode: 1,
-            dest: 128,
-            op1: 129,
-            op2: 0,
-        });
+        assert_eq!(i2, [1, 128, 129, 0]);
 
         let i3 = parse_instruction("str 0 1");
-        assert_eq!(i3, Instruction {
-            opcode: 2,
-            dest: 128,
-            op1: 129,
-            op2: 0,
-        });
+        assert_eq!(i3, [2, 128, 129, 0]);
         
         let i4 = parse_instruction("add 0 1 2");
-        assert_eq!(i4, Instruction {
-            opcode: 32,
-            dest: 128,
-            op1: 129,
-            op2: 130,
-        });
+        assert_eq!(i4, [32, 128, 129, 130]);
     }
 }

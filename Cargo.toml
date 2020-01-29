@@ -1,16 +1,7 @@
-[package]
-name = "gorpvm"
-version = "0.1.0"
-authors = ["jordan"]
-edition = "2018"
-default-run = "run"
+[workspace]
 
-[dependencies]
-
-[[bin]]
-name = "run"
-path = "src/bin/run.rs"
-
-[[bin]]
-name = "debug"
-path = "src/bin/debug.rs"
+members = [
+    "gorp_asm",
+    "gorp_cpu",
+    "gorp_tests",
+]

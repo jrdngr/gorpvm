@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Following https://bodil.lol/parser-combinators/
 
 pub type ParseResult<'a, Output> = Result<(&'a str, Output), &'a str>;
