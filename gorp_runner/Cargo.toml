@@ -1,0 +1,11 @@
+[package]
+name = "gorp_runner"
+version = "0.1.0"
+authors = ["Jordan Grace <jordan@righteye.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+gorp_cpu = { path = "../gorp_cpu" }
+structopt = "0.3"
