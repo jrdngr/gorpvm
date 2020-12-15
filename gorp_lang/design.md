@@ -75,6 +75,7 @@ If you can't think of a better example, it's a bad idea
 'int 5 // It's a normal function
 ```
 
+any     dynamically typed
 int     64-bit integer
 float   64-bit floating poing
 str     UTF-8 string
@@ -170,8 +171,39 @@ edit (next line) == { increment cursor |> until { cursor[0] == "\n" } }
 edit (next "tacotime") == { increment cursor |> until { cursor[] == "tacotime" }}
 ```
 
-### Playground
+
+
+### Nulls
+
+`nil` value with opt-in nullable parameters.
+
+
+```
+fn full-name (first last?) { "${first} ${last ?? "jones"}" }
+
+full-name "jim"
+// "jim jones"
+
+full-name "jim" "smith"
+// "jim smith"
+
+set last nil
+full-name "jim" last
+// "jim jones"
+
+
+fn sum (a b) { a + b }
+
+set x null
+sum 3 x
+// error, b is not nullable 
 
 ```
 
+Works for typed variables too
+
+```
+set n?:int 5
+set n?:int nil
+set n:int nil // error
 ```
