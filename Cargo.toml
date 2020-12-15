@@ -3,6 +3,7 @@
 members = [
     "gorp_asm",
     "gorp_cpu",
+    "gorp_lang",
     "gorp_runner",
     "gorp_tests",
 ]
