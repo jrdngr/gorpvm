@@ -110,7 +110,12 @@ set add2 (n) { n + 2 }
 ```
 
 
-### Piping
+### Pipelines
+`|>` pipeline operator passes previous result as an argument
+`|` execute statements in the middle of a pipeline
+`|>` can continue after
+
+
 ```
 fn add2 n { n + 2 }
 fn mul3 n { n * 3 }
@@ -123,5 +128,50 @@ fn even n { n % 2 == 0 ? n ? nil }
 // [15, 18, 21, 24, 27]
 |> even
 // [18, 24]
+
+{
+    increment cursor
+    |> until {
+        *cursor == "\n"
+    }
+}
+
+{
+    increment cursor
+    |> until { *cursor == "\n" }
+    | return cursor
+}
+
+{
+    range 1 5
+    |> map { it * 3 }
+    |> filter { it % 2 == 0 }
+    | set offset 5
+    |> map { it + offset }
+    | set new-offset { it / 2 }
+    |> map { it + new-offset }
+    |> fold { acc + it }
+}
 ```
 
+### Text Editing
+A text editing command is a target, action, and a number (default = 1)
+```
+edit line delete 3
+edit cursor move-left
+edit paragraph (replace "," ".")
+```
+
+Text editing targets have a next and previous value
+```
+edit (next cursor) == { increment cursor} 
+edit (next line) == { increment cursor |> until { *cursor == "\n" } }
+edit (next line) == { increment cursor |> until { cursor[0] == "\n" } }
+edit (next "tacotime") == { increment cursor |> until { cursor[] == "tacotime" }}
+```
+
+### Playground
+
+```
+
+```
